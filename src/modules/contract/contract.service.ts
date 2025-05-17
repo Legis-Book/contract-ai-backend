@@ -69,13 +69,23 @@ export class ContractService {
       throw new BadRequestException('No file uploaded');
     }
 
-    // TODO: Implement file parsing logic based on file type
-    // For now, we'll just create a basic contract record
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new BadRequestException('Unsupported file type');
+    }
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      throw new BadRequestException('File too large');
+    }
+
     const contract = this.contractRepository.create({
       title: file.originalname,
       filename: file.filename,
       contractType,
-      status: 'DRAFT'
+      status: 'DRAFT',
     });
 
     return await this.contractRepository.save(contract);
@@ -140,9 +150,42 @@ export class ContractService {
     return contract.riskFlags;
   }
 
+  async getAnalysis(id: string): Promise<{ summaries: Summary[]; riskFlags: RiskFlag[] }> {
+    const contract = await this.findOne(id);
+    return {
+      summaries: contract.summaries,
+      riskFlags: contract.riskFlags,
+    };
+  }
+
   async getContractQnA(id: string): Promise<QnA[]> {
     const contract = await this.findOne(id);
     return contract.qnas;
+  }
+
+  async updateRiskFlag(
+    contractId: string,
+    riskId: string,
+    status: 'open' | 'resolved' | 'ignored',
+    notes?: string,
+  ): Promise<RiskFlag> {
+    await this.findOne(contractId);
+    const riskFlag = await this.riskFlagRepository.findOne({ where: { id: riskId } });
+    if (!riskFlag) {
+      throw new NotFoundException(`Risk flag with ID ${riskId} not found`);
+    }
+    Object.assign(riskFlag, { status, notes });
+    return this.riskFlagRepository.save(riskFlag);
+  }
+
+  async exportAnalysis(id: string): Promise<any> {
+    const contract = await this.findOne(id);
+    return {
+      contract,
+      summaries: contract.summaries,
+      riskFlags: contract.riskFlags,
+      qna: contract.qnas,
+    };
   }
 
   async getContractReviews(id: string): Promise<HumanReview[]> {

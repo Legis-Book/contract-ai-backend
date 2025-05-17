@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ContractService } from './contract.service';
-import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
+import { UpdateRiskFlagDto } from './dto/update-risk-flag.dto';
+import { ChatDto } from './dto/chat.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('contracts')
@@ -11,36 +12,26 @@ export class ContractController {
   constructor(private readonly contractService: ContractService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new contract' })
-  @ApiResponse({ status: 201, description: 'Contract created successfully' })
-  create(@Body() createContractDto: CreateContractDto) {
-    return this.contractService.create(createContractDto);
-  }
-
-  @Post('upload')
   @ApiOperation({ summary: 'Upload a contract file' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-        contractType: {
-          type: 'string',
-        },
+        file: { type: 'string', format: 'binary' },
+        contractType: { type: 'string' },
       },
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  uploadContract(
+  async create(
     @UploadedFile() file: Express.Multer.File,
-    @Query('contractType') contractType: string,
+    @Body('contractType') contractType: string,
   ) {
-    return this.contractService.uploadContract(file, contractType);
+    const contract = await this.contractService.uploadContract(file, contractType);
+    return { id: contract.id };
   }
+
 
   @Get()
   @ApiOperation({ summary: 'Get all contracts' })
@@ -91,6 +82,13 @@ export class ContractController {
     return this.contractService.getContractRisks(id);
   }
 
+  @Get(':id/analysis')
+  @ApiOperation({ summary: 'Get full contract analysis' })
+  @ApiResponse({ status: 200, description: 'Return analysis data' })
+  getAnalysis(@Param('id') id: string) {
+    return this.contractService.getAnalysis(id);
+  }
+
   @Get(':id/qna')
   @ApiOperation({ summary: 'Get contract Q&A' })
   @ApiResponse({ status: 200, description: 'Return contract Q&A' })
@@ -101,11 +99,40 @@ export class ContractController {
   @Post(':id/qna')
   @ApiOperation({ summary: 'Ask a question about the contract' })
   @ApiResponse({ status: 200, description: 'Question answered successfully' })
-  askQuestion(
+  askQuestion(@Param('id') id: string, @Body() body: ChatDto) {
+    return this.contractService.askQuestion(id, body.question);
+  }
+
+  @Post(':id/chat')
+  @ApiOperation({ summary: 'Submit a chat question' })
+  @ApiResponse({ status: 200, description: 'Chat answered' })
+  submitChat(@Param('id') id: string, @Body() body: ChatDto) {
+    return this.contractService.askQuestion(id, body.question);
+  }
+
+  @Get(':id/chat')
+  @ApiOperation({ summary: 'Get chat history' })
+  @ApiResponse({ status: 200, description: 'Return chat messages' })
+  getChat(@Param('id') id: string) {
+    return this.contractService.getContractQnA(id);
+  }
+
+  @Patch(':id/risk-flags/:riskId')
+  @ApiOperation({ summary: 'Update risk flag status' })
+  @ApiResponse({ status: 200, description: 'Risk flag updated' })
+  updateRiskFlag(
     @Param('id') id: string,
-    @Body('question') question: string,
+    @Param('riskId') riskId: string,
+    @Body() body: UpdateRiskFlagDto,
   ) {
-    return this.contractService.askQuestion(id, question);
+    return this.contractService.updateRiskFlag(id, riskId, body.status, body.notes);
+  }
+
+  @Get(':id/export')
+  @ApiOperation({ summary: 'Export contract analysis' })
+  @ApiResponse({ status: 200, description: 'Return analysis export' })
+  exportAnalysis(@Param('id') id: string) {
+    return this.contractService.exportAnalysis(id);
   }
 
   @Get(':id/reviews')
