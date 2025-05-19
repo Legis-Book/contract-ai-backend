@@ -19,7 +19,6 @@ import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { StandardClause } from '../../entities/standard-clause.entity';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
-import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 
 @ApiTags('standard-clauses')
 @Controller('standard-clauses')
@@ -100,7 +99,6 @@ export class StandardClausesController {
   @ApiResponse({ status: 404, description: 'Standard clause not found.' })
   update(
     @Param('id') id: string,
-    @Body() updateStandardClauseDto: UpdateStandardClauseDto,
     @Body() updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
     return this.standardClausesService.update(+id, updateStandardClauseDto);
