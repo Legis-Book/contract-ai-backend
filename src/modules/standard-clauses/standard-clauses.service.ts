@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { StandardClause } from '../../entities/standard-clause.entity';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
+import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 
 @Injectable()
 export class StandardClausesService {

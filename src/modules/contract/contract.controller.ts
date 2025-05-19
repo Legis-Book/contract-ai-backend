@@ -8,7 +8,6 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
-  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ContractService } from './contract.service';
@@ -45,10 +44,12 @@ export class ContractController {
     @UploadedFile() file: Express.Multer.File,
     @Body('contractType') contractType: string,
   ) {
-    const contract = await this.contractService.uploadContract(file, contractType);
+    const contract = await this.contractService.uploadContract(
+      file,
+      contractType,
+    );
     return { id: contract.id };
   }
-
 
   @Get()
   @ApiOperation({ summary: 'Get all contracts' })
