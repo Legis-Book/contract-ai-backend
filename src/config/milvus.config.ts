@@ -15,7 +15,7 @@ export default registerAs<MilvusConfig>('milvus', () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
-    address: process.env.MILVUS_ADDRESS,
-    collection: process.env.MILVUS_COLLECTION,
+    address: process.env.MILVUS_ADDRESS!,
+    collection: process.env.MILVUS_COLLECTION!,
   };
 });
