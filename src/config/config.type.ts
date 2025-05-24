@@ -9,6 +9,8 @@ import { MailConfig } from '../mail/config/mail-config.type';
 import { GeminiConfig } from './gemini-config.type';
 import { OpenAiConfig } from './openai-config.type';
 import { VoyageConfig } from './voyage-config.type';
+import { MilvusConfig } from './milvus-config.type';
+import { Neo4jConfig } from './neo4j-config.type';
 
 export type AllConfigType = {
   app: AppConfig;
@@ -22,4 +24,6 @@ export type AllConfigType = {
   gemini: GeminiConfig;
   openai: OpenAiConfig;
   voyage: VoyageConfig;
+  milvus: MilvusConfig;
+  neo4j: Neo4jConfig;
 };
