@@ -11,6 +11,7 @@ import { OpenAiConfig } from './openai-config.type';
 import { VoyageConfig } from './voyage-config.type';
 import { MilvusConfig } from './milvus-config.type';
 import { Neo4jConfig } from './neo4j-config.type';
+import { LangfuseConfig } from './langfuse-config.type';
 
 export type AllConfigType = {
   app: AppConfig;
@@ -26,4 +27,5 @@ export type AllConfigType = {
   voyage: VoyageConfig;
   milvus: MilvusConfig;
   neo4j: Neo4jConfig;
+  langfuse: LangfuseConfig;
 };

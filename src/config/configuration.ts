@@ -24,6 +24,34 @@ export default () => ({
       ',',
     ),
   },
+  langfuse: {
+    publicKey: process.env.LANGFUSE_PUBLIC_KEY || '',
+    secretKey: process.env.LANGFUSE_SECRET_KEY || '',
+    baseUrl: process.env.LANGFUSE_BASE_URL || '',
+  },
+  milvus: {
+    address: process.env.MILVUS_ADDRESS || '',
+    collection: process.env.MILVUS_COLLECTION || '',
+  },
+  neo4j: {
+    uri: process.env.NEO4J_URI || '',
+    user: process.env.NEO4J_USER || '',
+    password: process.env.NEO4J_PASSWORD || '',
+  },
+  voyage: {
+    apiKey: process.env.VOYAGE_API_KEY || '',
+    model: process.env.VOYAGE_MODEL || '',
+    inputType: process.env.VOYAGE_INPUT_TYPE || 'document',
+    truncation: process.env.VOYAGE_TRUNCATION || false,
+    outputDimension: parseInt(
+      process.env.VOYAGE_OUTPUT_DIMENSION || '1536',
+      10,
+    ),
+  },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  },
 });
 
 // Gemini and OpenAI configs are now available via @nestjs/config injection using their respective keys ('gemini', 'openai').

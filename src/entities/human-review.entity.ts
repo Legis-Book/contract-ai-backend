@@ -7,7 +7,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Contract } from './contract.entity';
-import { User } from './user.entity';
+import { UserEntity } from '../users/infrastructure/persistence/relational/entities/user.entity';
 
 @Entity('human_reviews')
 export class HumanReview {
@@ -27,8 +27,8 @@ export class HumanReview {
   @ManyToOne(() => Contract, (contract) => contract.reviews)
   contract: Contract;
 
-  @ManyToOne(() => User, (user) => user.reviews)
-  reviewer: User;
+  @ManyToOne(() => UserEntity, (user) => user.reviews)
+  reviewer: UserEntity;
 
   @CreateDateColumn()
   createdAt: Date;

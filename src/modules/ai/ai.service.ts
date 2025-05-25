@@ -24,6 +24,7 @@ import { Milvus } from '@langchain/community/vectorstores/milvus';
 import neo4j, { Driver } from 'neo4j-driver';
 import { BaseMessage, HumanMessage, AIMessage } from '@langchain/core/messages';
 import { CustomVoyageEmbeddings } from '../../utils/voyage-embeddings';
+import { AllConfigType } from '../../config/config.type';
 
 @Injectable()
 export class AiService implements OnModuleInit, OnModuleDestroy {
@@ -39,7 +40,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly llmFactory: LlmFactory,
-    private readonly configService: ConfigService<any>,
+    private readonly configService: ConfigService<AllConfigType>,
   ) {
     this.llm = this.llmFactory.getLlm();
     this.textSplitter = new RecursiveCharacterTextSplitter({
@@ -82,22 +83,22 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     // Validate required environment variables
-    const milvusAddress = this.configService.get('MILVUS_ADDRESS', {
+    const milvusAddress = this.configService.get('milvus.address', {
       infer: true,
     });
-    const voyageApiKey = this.configService.get('VOYAGE_API_KEY', {
+    const voyageApiKey = this.configService.get('voyage.apiKey', {
       infer: true,
     });
-    const milvusCollection = this.configService.get('MILVUS_COLLECTION', {
+    const milvusCollection = this.configService.get('milvus.collection', {
       infer: true,
     });
-    const neo4jUri = this.configService.get('NEO4J_URI', {
+    const neo4jUri = this.configService.get('neo4j.uri', {
       infer: true,
     });
-    const neo4jUser = this.configService.get('NEO4J_USER', {
+    const neo4jUser = this.configService.get('neo4j.user', {
       infer: true,
     });
-    const neo4jPassword = this.configService.get('NEO4J_PASSWORD', {
+    const neo4jPassword = this.configService.get('neo4j.password', {
       infer: true,
     });
 
