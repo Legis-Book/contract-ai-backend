@@ -21,7 +21,20 @@ describe('AiService', () => {
 
   beforeEach(async () => {
     llmFactory = { getLlm: jest.fn() };
-    configService = { get: jest.fn() } as any;
+    configService = {
+      get: jest.fn((key: string) => {
+        switch (key) {
+          case 'langfuse.publicKey':
+            return 'public';
+          case 'langfuse.secretKey':
+            return 'secret';
+          case 'langfuse.baseUrl':
+            return 'http://example.com';
+          default:
+            return undefined;
+        }
+      }),
+    } as any;
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AiService,

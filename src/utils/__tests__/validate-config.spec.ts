@@ -17,7 +17,7 @@ describe('validateConfig', () => {
   });
 
   it('should throw for invalid config', () => {
-    expect(() => validateConfig({ NAME: 123, PORT: '3000' }, Env)).toThrow();
+    expect(() => validateConfig({ NAME: 123, PORT: 'abc' }, Env)).toThrow();
   });
 
   it('should throw for missing required properties', () => {
