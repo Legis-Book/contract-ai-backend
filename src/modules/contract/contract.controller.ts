@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ContractService } from './contract.service';
@@ -21,11 +22,16 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import type { ExportAnalysisResult } from './contract.service';
+import { ContractHybridService } from './contract-hybrid.service';
+import { IngestContractDto } from './dto/ingest-contract.dto';
 
 @ApiTags('contracts')
 @Controller('contracts')
 export class ContractController {
-  constructor(private readonly contractService: ContractService) {}
+  constructor(
+    private readonly contractService: ContractService,
+    private readonly contractHybridService: ContractHybridService,
+  ) {}
 
   @Post('upload')
   @ApiOperation({ summary: 'Upload a contract file' })
@@ -166,5 +172,28 @@ export class ContractController {
   @ApiResponse({ status: 200, description: 'Return contract reviews' })
   getContractReviews(@Param('id') id: string) {
     return this.contractService.getContractReviews(id);
+  }
+
+  @Post(':id/hybrid-ingest')
+  async hybridIngest(
+    @Param('id') contractId: string,
+    @Body() body: IngestContractDto,
+  ) {
+    const text = await this.contractHybridService.extractText(body.sources);
+    const clauses = await this.contractHybridService.extractClauses(
+      text,
+      body.contractType,
+    );
+    await this.contractHybridService.saveContract(
+      contractId,
+      body.title,
+      clauses,
+    );
+    return { clauseCount: clauses.length };
+  }
+
+  @Get(':id/hybrid-search')
+  async hybridSearch(@Query('q') q: string) {
+    return this.contractHybridService.searchClauses(q);
   }
 }

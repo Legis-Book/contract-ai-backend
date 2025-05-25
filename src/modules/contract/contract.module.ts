@@ -9,6 +9,8 @@ import { HumanReview } from '../../entities/human-review.entity';
 import { ContractService } from './contract.service';
 import { ContractController } from './contract.controller';
 import { AiModule } from '../ai/ai.module';
+import { ConfigModule } from '@nestjs/config';
+import { ContractHybridService } from './contract-hybrid.service';
 
 @Module({
   imports: [
@@ -21,8 +23,9 @@ import { AiModule } from '../ai/ai.module';
       HumanReview,
     ]),
     AiModule,
+    ConfigModule,
   ],
-  providers: [ContractService],
+  providers: [ContractService, ContractHybridService],
   controllers: [ContractController],
   exports: [ContractService],
 })

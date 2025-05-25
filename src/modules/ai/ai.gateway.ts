@@ -10,6 +10,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { AiService } from './ai.service';
+import { ContractService } from '../contract/contract.service';
 
 @WebSocketGateway({ namespace: '/contract-chat', cors: true })
 export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -18,7 +19,10 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private readonly logger = new Logger(AiGateway.name);
 
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    private readonly contractService: ContractService,
+  ) {}
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -63,6 +67,33 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (error) {
       this.logger.error('Error in chatWithContract', error);
       client.emit('error', { message: 'Failed to process message' });
+    }
+  }
+
+  // Q&A over WebSocket for contracts
+  @SubscribeMessage('askQuestion')
+  async handleAskQuestion(
+    @MessageBody() data: { contractId: string; question: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { contractId, question } = data;
+    try {
+      const contract = await this.contractService.findOne(contractId);
+      if (!contract.fullText) {
+        client.emit('error', { message: 'Contract text is required for Q&A' });
+        return;
+      }
+      const answer = await this.aiService.answerQuestion(
+        question,
+        contract.fullText,
+      );
+      client.emit('qnaAnswer', {
+        answer: answer.answer,
+        confidence: answer.confidence,
+      });
+    } catch (error) {
+      this.logger.error('Error in askQuestion', error);
+      client.emit('error', { message: 'Failed to answer question' });
     }
   }
 }

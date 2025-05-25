@@ -1284,6 +1284,62 @@
         ]
       }
     },
+    "/api/contracts/{id}/hybrid-ingest": {
+      "post": {
+        "operationId": "ContractController_hybridIngest",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestContractDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "contracts"
+        ]
+      }
+    },
+    "/api/contracts/{id}/hybrid-search": {
+      "get": {
+        "operationId": "ContractController_hybridSearch",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "contracts"
+        ]
+      }
+    },
     "/api/templates": {
       "post": {
         "operationId": "TemplatesController_create",
@@ -1624,53 +1680,6 @@
         "summary": "Delete rule",
         "tags": [
           "rules"
-        ]
-      }
-    },
-    "/api/hybrid/ingest": {
-      "post": {
-        "operationId": "HybridReviewController_ingestContract",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IngestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "HybridReview"
-        ]
-      }
-    },
-    "/api/hybrid/search": {
-      "get": {
-        "operationId": "HybridReviewController_search",
-        "parameters": [
-          {
-            "name": "q",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "HybridReview"
         ]
       }
     }
@@ -2200,6 +2209,10 @@
           "status"
         ]
       },
+      "IngestContractDto": {
+        "type": "object",
+        "properties": {}
+      },
       "Rule": {
         "type": "object",
         "properties": {
@@ -2269,10 +2282,6 @@
             "type": "number"
           }
         }
-      },
-      "IngestDto": {
-        "type": "object",
-        "properties": {}
       }
     }
   }

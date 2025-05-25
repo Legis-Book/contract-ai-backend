@@ -8,9 +8,10 @@ import scribe from 'scribe.js-ocr';
 import { Document } from 'langchain/document';
 import { CustomVoyageEmbeddings } from '../../utils/voyage-embeddings';
 import { AiService } from '../ai/ai.service';
+import { ClauseSchema } from '../ai/schema/clause.schema';
 
 @Injectable()
-export class HybridReviewService implements OnModuleInit {
+export class ContractHybridService implements OnModuleInit {
   private driver!: Driver;
   private milvusClient!: MilvusClient;
   private vectorStore!: Milvus;
@@ -60,20 +61,8 @@ export class HybridReviewService implements OnModuleInit {
   }
 
   async extractClauses(text: string, contractType: string) {
-    const ClauseSchema = z.object({
-      title: z.string(),
-      clauseType: z.string(),
-      text: z.string(),
-      riskScore: z.enum(['Low', 'Medium', 'High']),
-      riskJustification: z.string(),
-      entities: z.array(z.string()).optional(),
-      amounts: z.array(z.string()).optional(),
-      dates: z.array(z.string()).optional(),
-      legalReferences: z.array(z.string()).optional(),
-    });
-    const ResponseSchema = z.array(ClauseSchema);
     const clauses = await this.aiService.extractClauses(text, contractType);
-    return ResponseSchema.parse(clauses);
+    return z.array(ClauseSchema).parse(clauses);
   }
 
   async saveContract(contractId: string, title: string, clauses: any[]) {

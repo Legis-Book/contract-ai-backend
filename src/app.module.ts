@@ -31,7 +31,6 @@ import { StandardClausesModule } from './modules/standard-clauses/standard-claus
 import { ContractModule } from './modules/contract/contract.module';
 import { TemplatesModule } from './templates/templates.module';
 import { RulesModule } from './modules/rules/rules.module';
-import { HybridReviewModule } from './modules/hybrid/hybrid-review.module';
 
 // <database-block>
 const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
@@ -101,7 +100,6 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
     ContractModule,
     TemplatesModule,
     RulesModule,
-    HybridReviewModule,
   ],
 })
 export class AppModule {}
