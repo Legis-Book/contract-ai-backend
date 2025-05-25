@@ -100,7 +100,7 @@ export class ContractService {
 
     const contract = this.contractRepository.create({
       title: file.originalname,
-      filename: file.filename,
+      filename: file.originalname,
       contractType,
       status: 'pending_review',
     });
