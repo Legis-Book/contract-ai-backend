@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contract } from '../../entities/contract.entity';
 import { Clause } from '../../entities/clause.entity';
@@ -22,7 +22,7 @@ import { ContractHybridService } from './contract-hybrid.service';
       QnA,
       HumanReview,
     ]),
-    AiModule,
+    forwardRef(() => AiModule),
     ConfigModule,
   ],
   providers: [ContractService, ContractHybridService],

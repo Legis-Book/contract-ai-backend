@@ -37,8 +37,8 @@ export class Contract {
 
   @Column({
     type: 'enum',
-    enum: ['DRAFT', 'IN_REVIEW', 'REVIEWED', 'APPROVED', 'REJECTED'],
-    default: 'DRAFT',
+    enum: ['pending_review', 'in_review', 'reviewed', 'approved', 'rejected'],
+    default: 'pending_review',
   })
   status: string;
 

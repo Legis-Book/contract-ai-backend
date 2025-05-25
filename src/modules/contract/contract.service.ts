@@ -102,7 +102,7 @@ export class ContractService {
       title: file.originalname,
       filename: file.filename,
       contractType,
-      status: 'DRAFT',
+      status: 'pending_review',
     });
 
     return await this.contractRepository.save(contract);
