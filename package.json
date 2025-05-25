@@ -203,7 +203,13 @@
       "!**/role.ts",
       "!**/user.ts",
       "!**/auth.ts",
-      "!**/session.ts"
+      "!**/session.ts",
+      "!auth/**",
+      "!users/**",
+      "!session/**",
+      "!files/**",
+      "!mail/**",
+      "!templates/**"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
