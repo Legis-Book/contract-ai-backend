@@ -8,6 +8,10 @@ import { LlmFactory } from './llm/llm.factory';
 import { Llm } from './llm/llm.interface';
 import { z } from 'zod';
 import { zodSchemaToPromptDescription } from '../../utils/zod-schema-to-prompt';
+import {
+  vertexSchemaToZod,
+  zodToVertexSchema,
+} from '@techery/zod-to-vertex-schema';
 import { CallbackHandler } from 'langfuse-langchain';
 import { ContractSummarySchema } from './schema/summary.schema';
 import { Langfuse } from 'langfuse';
@@ -37,6 +41,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
   private neo4jDriver!: Driver;
   private chatGraphs: Map<string, any> = new Map(); // contractId -> compiled LangGraph
   private checkpointers: Map<string, any> = new Map(); // contractId -> MemorySaver
+  private llmProvider!: string | undefined;
 
   constructor(
     private readonly llmFactory: LlmFactory,
@@ -78,6 +83,9 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       publicKey: langfusePublicKey,
       secretKey: langfuseSecretKey,
       baseUrl: langfuseBaseUrl,
+    });
+    this.llmProvider = this.configService.get<string>('ai.provider', {
+      infer: true,
     });
   }
 
@@ -146,8 +154,15 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private getSchemaAsPerLLMProvider(schema: z.ZodType<any>) {
+    if (this.llmProvider === 'gemini') {
+      return zodToVertexSchema(schema);
+    }
+    return schema;
+  }
+
   private async invokeWithSchema<T>(
-    schema: z.ZodType<T>,
+    schema: z.ZodType<T> | string,
     prompt: PromptTemplate | string,
     inputVars: Record<string, any>,
     options?: { skipSchemaDescription?: boolean },
@@ -155,17 +170,20 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     let result: any;
     const schemaDescription = options?.skipSchemaDescription
       ? undefined
-      : zodSchemaToPromptDescription(schema);
+      : typeof schema === 'string'
+        ? schema
+        : zodSchemaToPromptDescription(schema);
+
     const promptTemplate =
       typeof prompt === 'string' ? PromptTemplate.fromTemplate(prompt) : prompt;
     if (typeof (this.llm as any).model?.withStructuredOutput === 'function') {
       const modelWithSchema = (this.llm as any).model.withStructuredOutput(
-        schema,
+        this.getSchemaAsPerLLMProvider(schema as z.ZodType<T>),
       );
       // Render the prompt with inputVars
       const renderedPrompt = await promptTemplate.format({
         ...inputVars,
-        ...(schemaDescription ? { schemaDescription } : {}),
+        ...(schemaDescription ? { schemaDescription: schemaDescription } : {}),
       });
       result = await modelWithSchema.invoke(renderedPrompt, {
         callbacks: [this.langfuseHandler],
@@ -180,7 +198,8 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
         { callbacks: [this.langfuseHandler] },
       );
       try {
-        result = schema.parse(JSON.parse(raw));
+        const zodSchema = vertexSchemaToZod(JSON.parse(raw));
+        result = zodSchema.safeParse(zodSchema.parse(JSON.parse(raw)));
       } catch (e) {
         throw new Error('Failed to parse result: ' + e);
       }
@@ -209,7 +228,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     const risks = analysisResults.flatMap((result) => result.risks);
 
     // Generate overall summary
-    const summary = await this.generateSummary(text, contractType);
+    const summary = await this.generateSummary(text);
 
     return {
       clauses,
@@ -233,7 +252,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       AnalysisSchema,
       prompt,
       {
-        contractType,
+        contractType: contractType,
         text: doc.pageContent,
       },
     );
@@ -242,16 +261,17 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
 
   public async generateSummary(
     text: string,
-    contractType: string,
   ): Promise<z.infer<typeof ContractSummarySchema>> {
-    const prompt = (await this.langfuse.getPrompt('contract-summary')).prompt;
+    const prompt = PromptTemplate.fromTemplate(
+      (await this.langfuse.getPrompt('contract-summary')).prompt,
+    );
     return this.invokeWithSchema<z.infer<typeof ContractSummarySchema>>(
       ContractSummarySchema,
       prompt,
       {
         text,
-        contractType,
       },
+      { skipSchemaDescription: true },
     );
   }
 

@@ -354,10 +354,7 @@ export class AnalysisService {
       }
 
       // Generate clause summary
-      const summaryObj = await this.aiService.generateSummary(
-        clauseText,
-        'clause',
-      );
+      const summaryObj = await this.aiService.generateSummary(clauseText);
       await this.createSummary(contractId, clause.id, {
         type: SummaryType.CLAUSE,
         text: JSON.stringify(summaryObj),
@@ -370,7 +367,6 @@ export class AnalysisService {
     }
     const contractSummaryObj = await this.aiService.generateSummary(
       contract.originalText,
-      'full contract',
     );
     await this.createSummary(contractId, null, {
       type: SummaryType.FULL,
@@ -389,7 +385,6 @@ export class AnalysisService {
     }
     const summaryObj = await this.aiService.generateSummary(
       contract.originalText,
-      type,
     );
     return this.createSummary(contractId, null, {
       type: type as SummaryType,

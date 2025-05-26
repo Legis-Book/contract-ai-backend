@@ -37,10 +37,7 @@ const KeyTermsSchema = z.object({
     .string()
     .describe('Plain-language description of the main goods/services'),
   payment: z.object({
-    currency: z
-      .string()
-      .length(3)
-      .describe('ISO-4217 currency code, e.g. "INR"'),
+    currency: z.string().describe('ISO-4217 currency code, e.g. "INR"'),
     amount: z.number().describe('Total or recurring payment amount'),
     schedule: z.string().describe('Payment frequency / due dates'),
   }),
@@ -80,11 +77,8 @@ const RiskSchema = z.object({
 
 export const ContractSummarySchema = z.object({
   snapshot: z.object({
-    contractType: z.string().describe('e.g. "Software Licence"'),
-    parties: z
-      .array(PartySchema)
-      .min(2)
-      .describe('Principal contracting entities'),
+    contractType: z.string().describe('e.g. "Software License"'),
+    parties: z.array(PartySchema).describe('Principal contracting entities'),
     effectiveDate: z
       .string()
       .describe('dd MMM yyyy format of contract start date'),
@@ -107,9 +101,9 @@ export const ContractSummarySchema = z.object({
     .array(NoteworthyClauseSchema)
     .describe('Clauses diverging from standard market practice'),
 
-  risks: z.array(RiskSchema).max(3).describe('High-level risk register'),
+  risks: z.array(RiskSchema).describe('High-level risk register'),
 
-  abstract: z.string().max(300).describe('≤ 42-word plain-English one-liner'),
+  abstract: z.string().describe('≤ 42-word plain-English one-liner'),
 
   generatedAt: z
     .string()

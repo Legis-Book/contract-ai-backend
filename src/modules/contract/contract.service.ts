@@ -14,6 +14,10 @@ import { HumanReview } from '../../entities/human-review.entity';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { AiService } from '../ai/ai.service';
+import scribe from 'scribe.js-ocr';
+import fs from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 export interface ExportAnalysisResult {
   contract: Contract;
@@ -88,7 +92,7 @@ export class ContractService {
 
     const allowedTypes = [
       'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX support can be added later
     ];
     if (!allowedTypes.includes(file.mimetype)) {
       throw new BadRequestException('Unsupported file type');
@@ -98,11 +102,31 @@ export class ContractService {
       throw new BadRequestException('File too large');
     }
 
+    let fullText = '';
+    if (file.mimetype === 'application/pdf') {
+      // Write buffer to a temp file, extract text, then clean up
+      const tempPath = join(
+        tmpdir(),
+        `upload-${Date.now()}-${Math.random()}.pdf`,
+      );
+      await fs.writeFile(tempPath, file.buffer);
+      try {
+        const results = await scribe.extractText([tempPath]);
+        fullText = results;
+      } catch (e) {
+        console.error(e);
+        throw new BadRequestException('Failed to extract text from PDF');
+      } finally {
+        await fs.unlink(tempPath).catch(() => {});
+      }
+    }
+
     const contract = this.contractRepository.create({
       title: file.originalname,
       filename: file.originalname,
       contractType,
       status: 'pending_review',
+      fullText,
     });
 
     return await this.contractRepository.save(contract);
@@ -112,6 +136,7 @@ export class ContractService {
     const contract = await this.findOne(id);
 
     if (!contract.fullText) {
+      // Try to extract text if file is available (not implemented here, as file is not stored)
       throw new BadRequestException('Contract text is required for analysis');
     }
 
@@ -121,9 +146,21 @@ export class ContractService {
       contract.contractType,
     );
 
+    // Transform clauses data to match schema
+    const transformedClauses = analysis.clauses.map((clauseData) => ({
+      ...clauseData,
+      id: crypto.randomUUID(), // Generate UUID for clause
+    }));
+
+    // Transform risks data to match schema
+    const transformedRisks = analysis.risks.map((riskData) => ({
+      ...riskData,
+      id: crypto.randomUUID(), // Generate UUID for risk flag
+    }));
+
     // Save clauses
     const clauses = await Promise.all(
-      analysis.clauses.map((clauseData) =>
+      transformedClauses.map((clauseData) =>
         this.clauseRepository.save({
           ...clauseData,
           contract,
@@ -133,7 +170,7 @@ export class ContractService {
 
     // Save risk flags
     const riskFlags = await Promise.all(
-      analysis.risks.map((riskData) =>
+      transformedRisks.map((riskData) =>
         this.riskFlagRepository.save({
           ...riskData,
           contract,
