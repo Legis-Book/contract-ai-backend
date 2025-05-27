@@ -1,15 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import { StandardClause } from '../../../generated/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 
 @Injectable()
 export class StandardClausesService {
-  private prisma: PrismaClient;
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createStandardClauseDto: CreateStandardClauseDto,
@@ -55,8 +52,13 @@ export class StandardClausesService {
   }
 
   async remove(id: number): Promise<void> {
-    await this.prisma.standardClause.delete({ where: { id } }).catch(() => {
-      throw new NotFoundException(`Standard clause with ID ${id} not found`);
-    });
+    try {
+      await this.prisma.standardClause.delete({ where: { id } });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Standard clause with ID ${id} not found`);
+      }
+      throw error;
+    }
   }
 }

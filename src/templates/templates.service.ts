@@ -1,15 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { StandardClause } from '../../generated/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 
 @Injectable()
 export class TemplatesService {
-  private prisma: PrismaClient;
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createStandardClauseDto: CreateStandardClauseDto,
@@ -22,7 +19,7 @@ export class TemplatesService {
   async findAll(): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { isActive: true },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
@@ -59,14 +56,14 @@ export class TemplatesService {
   async findByType(type: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { type, isActive: true },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
   async findByJurisdiction(jurisdiction: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { jurisdiction, isActive: true },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 }

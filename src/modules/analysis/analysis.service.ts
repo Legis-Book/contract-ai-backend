@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import {
   Contract,
   Clause,
@@ -29,10 +29,10 @@ import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class AnalysisService {
-  private prisma: PrismaClient;
-  constructor(private readonly aiService: AiService) {
-    this.prisma = new PrismaClient();
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
+  ) {}
 
   // Contract operations
   async createContract(
@@ -344,12 +344,11 @@ export class AnalysisService {
     });
 
     // Split contract into clauses
-    if (!contract.originalText) {
+    const originalText = (contract as any).originalText as string | undefined;
+    if (!originalText) {
       throw new Error('Contract text is not available');
     }
-    const clauses = await this.aiService.splitIntoClauses(
-      contract.originalText,
-    );
+    const clauses = await this.aiService.splitIntoClauses(originalText);
 
     // Analyze each clause
     for (const [index, clauseText] of clauses.entries()) {
@@ -386,33 +385,24 @@ export class AnalysisService {
     }
 
     // Generate contract summary
-    if (!contract.originalText) {
+    if (!originalText) {
       throw new Error('Contract text is not available');
     }
-    const contractSummaryObj = await this.aiService.generateSummary(
-      contract.originalText,
-    );
+    const contractSummaryObj =
+      await this.aiService.generateSummary(originalText);
     await this.createSummary(contractId, null, {
       type: SummaryType.FULL,
       text: JSON.stringify(contractSummaryObj),
-    });
-
-    // Update contract status
-    contract.status = ContractStatus.IN_REVIEW;
-    await this.prisma.contract.update({
-      where: { id: contract.id },
-      data: { status: contract.status },
     });
   }
 
   async generateSummary(contractId: string, type: string): Promise<Summary> {
     const contract = await this.findContract(contractId);
-    if (!contract.originalText) {
+    const originalText = (contract as any).originalText as string | undefined;
+    if (!originalText) {
       throw new Error('Contract text is not available');
     }
-    const summaryObj = await this.aiService.generateSummary(
-      contract.originalText,
-    );
+    const summaryObj = await this.aiService.generateSummary(originalText);
     return this.createSummary(contractId, null, {
       type: type as SummaryType,
       text: JSON.stringify(summaryObj),
@@ -425,10 +415,11 @@ export class AnalysisService {
     question: string,
   ): Promise<QnA> {
     const contract = await this.findContract(contractId);
-    if (!contract.originalText) {
+    const originalText = (contract as any).originalText as string | undefined;
+    if (!originalText) {
       throw new Error('Contract text is not available');
     }
-    let context = contract.originalText;
+    let context = originalText;
 
     if (clauseId) {
       const clause = await this.findClause(clauseId);
