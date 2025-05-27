@@ -20,11 +20,13 @@ The Node.js back-end remains the single API surface; clients are unaware that th
 
 2.1 PostgreSQL Additions
 
-Table	Purpose	Key Columns
-vc_repos	Map contract/template → repository	repo_id PK, entity_type ENUM, entity_id FK, default_branch
-vc_commits_meta	Lightweight index for search/reporting	commit_sha PK, repo_id, author_id, message, timestamp, size_bytes, branch_hint
-vc_prs	Pull-request metadata	pr_id PK, repo_id, source_branch, target_branch, status, created_by, created_at, merged_commit_sha
-vc_outbox	Event queue for Neo4j sync	event_id PK, payload JSONB, status ENUM('NEW','SENT','ERR'), created_at
+| Table           | Purpose                                    | Key Columns |
+| --------------- | ------------------------------------------ | ----------- |
+| vc_repos        | Map contract/template → repository         | repo_id PK, entity_type ENUM, entity_id FK, default_branch |
+| vc_commits_meta | Lightweight index for search/reporting     | commit_sha PK, repo_id, author_id, message, timestamp, size_bytes, branch_hint |
+| vc_prs          | Pull-request metadata                      | pr_id PK, repo_id, source_branch, target_branch, status, created_by, created_at, merged_commit_sha |
+| vc_conflicts    | Unresolved diff hunks for merge resolution | id PK, pr_id FK, index, hunk |
+| vc_outbox       | Event queue for Neo4j sync                  | event_id PK, payload JSONB, status ENUM(NEW,SENT,ERR), created_at |
 
 Everything else (rules, audit, users) continues unchanged.
 
