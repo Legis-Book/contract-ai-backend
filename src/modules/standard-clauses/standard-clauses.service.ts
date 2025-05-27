@@ -1,32 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { StandardClause } from '../../entities/standard-clause.entity';
+import { PrismaService } from '../../prisma/prisma.service';
+import { StandardClause } from '../../../generated/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 
 @Injectable()
 export class StandardClausesService {
-  constructor(
-    @InjectRepository(StandardClause)
-    private standardClauseRepository: Repository<StandardClause>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createStandardClauseDto: CreateStandardClauseDto,
   ): Promise<StandardClause> {
-    const standardClause = this.standardClauseRepository.create(
-      createStandardClauseDto,
-    );
-    return this.standardClauseRepository.save(standardClause);
+    return await this.prisma.standardClause.create({
+      data: createStandardClauseDto,
+    });
   }
 
   async findAll(): Promise<StandardClause[]> {
-    return this.standardClauseRepository.find();
+    return await this.prisma.standardClause.findMany();
   }
 
   async findOne(id: number): Promise<StandardClause> {
-    const standardClause = await this.standardClauseRepository.findOne({
+    const standardClause = await this.prisma.standardClause.findUnique({
       where: { id },
     });
     if (!standardClause) {
@@ -36,26 +31,34 @@ export class StandardClausesService {
   }
 
   async findByType(type: string): Promise<StandardClause[]> {
-    return this.standardClauseRepository.find({ where: { type } });
+    return await this.prisma.standardClause.findMany({ where: { type } });
   }
 
   async findByContractType(contractType: string): Promise<StandardClause[]> {
-    return this.standardClauseRepository.find({ where: { contractType } });
+    return await this.prisma.standardClause.findMany({
+      where: { contractType },
+    });
   }
 
   async update(
     id: number,
     updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
-    const standardClause = await this.findOne(id);
-    Object.assign(standardClause, updateStandardClauseDto);
-    return this.standardClauseRepository.save(standardClause);
+    await this.findOne(id);
+    return await this.prisma.standardClause.update({
+      where: { id },
+      data: updateStandardClauseDto,
+    });
   }
 
   async remove(id: number): Promise<void> {
-    const result = await this.standardClauseRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Standard clause with ID ${id} not found`);
+    try {
+      await this.prisma.standardClause.delete({ where: { id } });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Standard clause with ID ${id} not found`);
+      }
+      throw error;
     }
   }
 }

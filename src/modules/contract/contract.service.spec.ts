@@ -207,7 +207,7 @@ describe('ContractService', () => {
         riskFlags: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
+      } as unknown as Clause;
       const savedRisk = {
         ...analysis.risks[0],
         id: 'r1',

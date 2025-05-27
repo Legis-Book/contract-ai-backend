@@ -1,37 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { StandardClause } from './entities/standard-clause.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { StandardClause } from '../../generated/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 
 @Injectable()
 export class TemplatesService {
-  constructor(
-    @InjectRepository(StandardClause)
-    private standardClauseRepository: Repository<StandardClause>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createStandardClauseDto: CreateStandardClauseDto,
   ): Promise<StandardClause> {
-    const clause = this.standardClauseRepository.create({
-      isActive: true,
-      ...createStandardClauseDto,
+    return await this.prisma.standardClause.create({
+      data: { isActive: true, ...createStandardClauseDto },
     });
-    return this.standardClauseRepository.save(clause);
   }
 
   async findAll(): Promise<StandardClause[]> {
-    return this.standardClauseRepository.find({
+    return await this.prisma.standardClause.findMany({
       where: { isActive: true },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
   async findOne(id: string): Promise<StandardClause> {
-    const clause = await this.standardClauseRepository.findOne({
-      where: { id, isActive: true },
+    const clause = await this.prisma.standardClause.findUnique({
+      where: { id },
     });
 
     if (!clause) {
@@ -45,28 +39,31 @@ export class TemplatesService {
     id: string,
     updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
-    const clause = await this.findOne(id);
-    Object.assign(clause, updateStandardClauseDto);
-    return this.standardClauseRepository.save(clause);
+    await this.findOne(id);
+    return await this.prisma.standardClause.update({
+      where: { id },
+      data: updateStandardClauseDto,
+    });
   }
 
   async remove(id: string): Promise<void> {
-    const clause = await this.findOne(id);
-    clause.isActive = false;
-    await this.standardClauseRepository.save(clause);
+    await this.prisma.standardClause.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 
   async findByType(type: string): Promise<StandardClause[]> {
-    return this.standardClauseRepository.find({
+    return await this.prisma.standardClause.findMany({
       where: { type, isActive: true },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
   async findByJurisdiction(jurisdiction: string): Promise<StandardClause[]> {
-    return this.standardClauseRepository.find({
+    return await this.prisma.standardClause.findMany({
       where: { jurisdiction, isActive: true },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 }

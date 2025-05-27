@@ -3,18 +3,14 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Rule } from '../../entities/rule.entity';
+import { PrismaService } from '../../prisma/prisma.service';
+import { Rule } from '../../../generated/prisma';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
 
 @Injectable()
 export class RulesService {
-  constructor(
-    @InjectRepository(Rule)
-    private readonly ruleRepository: Repository<Rule>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   private validateThresholds(dto: CreateRuleDto | UpdateRuleDto) {
     if (
@@ -30,16 +26,15 @@ export class RulesService {
 
   async create(dto: CreateRuleDto): Promise<Rule> {
     this.validateThresholds(dto);
-    const rule = this.ruleRepository.create(dto);
-    return this.ruleRepository.save(rule);
+    return await this.prisma.rule.create({ data: dto });
   }
 
   async findAll(): Promise<Rule[]> {
-    return this.ruleRepository.find();
+    return await this.prisma.rule.findMany();
   }
 
   async findOne(id: string): Promise<Rule> {
-    const rule = await this.ruleRepository.findOne({ where: { id } });
+    const rule = await this.prisma.rule.findUnique({ where: { id } });
     if (!rule) {
       throw new NotFoundException(`Rule with ID ${id} not found`);
     }
@@ -47,14 +42,16 @@ export class RulesService {
   }
 
   async update(id: string, dto: UpdateRuleDto): Promise<Rule> {
-    const rule = await this.findOne(id);
+    await this.findOne(id);
     this.validateThresholds(dto);
-    Object.assign(rule, dto);
-    return this.ruleRepository.save(rule);
+    return await this.prisma.rule.update({
+      where: { id },
+      data: dto,
+    });
   }
 
   async remove(id: string): Promise<void> {
-    const rule = await this.findOne(id);
-    await this.ruleRepository.remove(rule);
+    await this.findOne(id);
+    await this.prisma.rule.delete({ where: { id } });
   }
 }
