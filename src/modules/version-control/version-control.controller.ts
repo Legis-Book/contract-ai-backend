@@ -25,7 +25,7 @@ export class VersionControlController {
       dto.branch,
       dto.treeSha,
       dto.message,
-      dto.author,
+      dto.authorId,
     );
   }
 }

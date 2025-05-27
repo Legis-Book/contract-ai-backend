@@ -77,12 +77,12 @@ model Contract {
   summaries    Summary[]
   qnas         QnA[]
   reviews      HumanReview[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model Clause {
-  id                String         @id @default(uuid())
+  id                String     @id @default(uuid())
   clauseNumber      String
   title             String?
   text              String
@@ -99,27 +99,27 @@ model Clause {
   endIndex          Int?
   confidence        Float?
   contractId        String
-  contract          Contract       @relation(fields: [contractId], references: [id])
+  contract          Contract   @relation(fields: [contractId], references: [id])
   riskFlags         RiskFlag[]
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }
 
 model RiskFlag {
-  id             String         @id @default(uuid())
-  flagType       RiskFlagType
-  description    String
-  severity       RiskFlagSeverity @default(MEDIUM)
-  suggestedText  String?
-  notes          String?
-  status         RiskFlagStatus  @default(open)
-  isResolved     Boolean         @default(false)
-  contractId     String
-  contract       Contract        @relation(fields: [contractId], references: [id])
-  clauseId       String?
-  clause         Clause?         @relation(fields: [clauseId], references: [id])
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id            String           @id @default(uuid())
+  flagType      RiskFlagType
+  description   String
+  severity      RiskFlagSeverity @default(MEDIUM)
+  suggestedText String?
+  notes         String?
+  status        RiskFlagStatus   @default(open)
+  isResolved    Boolean          @default(false)
+  contractId    String
+  contract      Contract         @relation(fields: [contractId], references: [id])
+  clauseId      String?
+  clause        Clause?          @relation(fields: [clauseId], references: [id])
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model HumanReview {
@@ -135,26 +135,26 @@ model HumanReview {
 }
 
 model QnA {
-  id         String    @id @default(uuid())
+  id         String   @id @default(uuid())
   question   String
   answer     String
-  isAccepted Boolean   @default(false)
+  isAccepted Boolean  @default(false)
   feedback   String?
   contractId String
-  contract   Contract  @relation(fields: [contractId], references: [id])
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  contract   Contract @relation(fields: [contractId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Rule {
-  id                   String   @id @default(uuid())
-  name                 String
-  description          String?
-  pattern              String?
-  similarityThreshold  Float?
-  deviationAllowedPct  Float?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                  String   @id @default(uuid())
+  name                String
+  description         String?
+  pattern             String?
+  similarityThreshold Float?
+  deviationAllowedPct Float?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Summary {
@@ -181,40 +181,42 @@ model StandardClause {
 }
 
 model UserEntity {
-  id         Int        @id @default(autoincrement())
-  email      String?    @unique
-  password   String?
-  provider   String     @default("email")
-  socialId   String?
-  firstName  String?
-  lastName   String?
-  photoId    String?
-  photo      FileEntity? @relation(fields: [photoId], references: [id])
-  roleId     Int?
-  role       RoleEntity? @relation(fields: [roleId], references: [id])
-  reviews    HumanReview[]
-  statusId   Int?
-  status     StatusEntity? @relation(fields: [statusId], references: [id])
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  deletedAt  DateTime?
+  id           Int            @id @default(autoincrement())
+  email        String?        @unique
+  password     String?
+  provider     String         @default("email")
+  socialId     String?
+  firstName    String?
+  lastName     String?
+  photoId      String?
+  photo        FileEntity?    @relation(fields: [photoId], references: [id])
+  roleId       Int?
+  role         RoleEntity?    @relation(fields: [roleId], references: [id])
+  reviews      HumanReview[]
+  statusId     Int?
+  status       StatusEntity?  @relation(fields: [statusId], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  commitMetas  VcCommitMeta[] @relation("CommitAuthor")
+  pullRequests VcPr[]         @relation("PrCreatedBy")
 }
 
 model RoleEntity {
-  id   Int    @id
-  name String?
+  id    Int          @id
+  name  String?
   users UserEntity[]
 }
 
 model StatusEntity {
-  id    Int    @id
+  id    Int          @id
   name  String?
   users UserEntity[]
 }
 
 model FileEntity {
-  id   String  @id @default(uuid())
-  path String
+  id    String       @id @default(uuid())
+  path  String
   users UserEntity[]
 }
 
@@ -244,47 +246,74 @@ enum VcPrStatus {
 }
 
 model VcObject {
-  sha       String      @id @db.Char(64)
+  sha       String       @id @db.Char(64)
   data      Bytes
   type      VcObjectType
-  createdAt DateTime    @default(now())
+  createdAt DateTime     @default(now())
 }
 
 model VcRepo {
-  id            String    @id @default(uuid())
+  id            String         @id @default(uuid())
   entityType    VcEntityType
   entityId      String
   defaultBranch String
   refs          VcRef[]
   prs           VcPr[]
+  VcCommitMeta  VcCommitMeta[]
 }
 
 model VcRef {
-  id        String   @id
+  id        String    @id
   repoId    String
   commitSha String
   refType   VcRefType
-  isMutable Boolean  @default(true)
-  repo      VcRepo   @relation(fields: [repoId], references: [id])
+  isMutable Boolean   @default(true)
+  repo      VcRepo    @relation(fields: [repoId], references: [id])
 }
 
 model VcPr {
-  id             String       @id @default(uuid())
-  repoId         String
-  sourceBranch   String
-  targetBranch   String
-  status         VcPrStatus
-  createdBy      String
-  createdAt      DateTime     @default(now())
+  id              String       @id @default(uuid())
+  repoId          String
+  sourceBranch    String
+  targetBranch    String
+  status          VcPrStatus
+  createdById     Int
+  createdAt       DateTime     @default(now())
   mergedCommitSha String?
-  repo           VcRepo       @relation(fields: [repoId], references: [id])
-  conflicts      VcConflict[]
+  repo            VcRepo       @relation(fields: [repoId], references: [id])
+  createdBy       UserEntity   @relation("PrCreatedBy", fields: [createdById], references: [id])
+  conflicts       VcConflict[]
 }
 
 model VcConflict {
-  id     String @id @default(uuid())
-  prId   String
-  index  Int
-  hunk   String?
-  pr     VcPr   @relation(fields: [prId], references: [id])
+  id    String  @id @default(uuid())
+  prId  String
+  index Int
+  hunk  String?
+  pr    VcPr    @relation(fields: [prId], references: [id])
+}
+
+model VcCommitMeta {
+  commitSha  String     @id @db.Char(64)
+  repoId     String
+  authorId   Int
+  message    String
+  timestamp  DateTime   @default(now())
+  sizeBytes  Int
+  branchHint String?
+  repo       VcRepo     @relation(fields: [repoId], references: [id])
+  author     UserEntity @relation("CommitAuthor", fields: [authorId], references: [id])
+}
+
+enum VcOutboxStatus {
+  NEW
+  SENT
+  ERR
+}
+
+model VcOutbox {
+  id        String         @id @default(uuid())
+  payload   Json
+  status    VcOutboxStatus @default(NEW)
+  createdAt DateTime       @default(now())
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsString, IsInt } from 'class-validator';
 
 export class CreateCommitDto {
   @ApiProperty()
@@ -15,6 +15,6 @@ export class CreateCommitDto {
   message: string;
 
   @ApiProperty()
-  @IsString()
-  author: string;
+  @IsInt()
+  authorId: number;
 }
