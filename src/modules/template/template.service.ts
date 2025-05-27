@@ -44,14 +44,14 @@ export class TemplateService {
     id: string,
     updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
+    const numericId = Number(id);
     const standardClause = await this.findOne(id);
 
     // If there are significant changes, create a new version
     if (this.hasSignificantChanges(standardClause, updateStandardClauseDto)) {
       // Mark current version as not latest
-      standardClause.isLatest = false;
       await this.prisma.standardClause.update({
-        where: { id: standardClause.id },
+        where: { id: numericId },
         data: { isLatest: false },
       });
 
@@ -59,11 +59,10 @@ export class TemplateService {
       const newVersion = await this.prisma.standardClause.create({
         data: {
           ...updateStandardClauseDto,
-          previousVersionId: standardClause.id,
+          previousVersionId: numericId,
           isActive: true,
           isLatest: true,
-          version: this.incrementVersion(standardClause.version),
-          nextVersions: [],
+          version: this.incrementVersion(standardClause.version ?? '1.0.0'),
         },
       });
       return newVersion;
@@ -71,7 +70,7 @@ export class TemplateService {
 
     // Otherwise, update existing version
     return await this.prisma.standardClause.update({
-      where: { id },
+      where: { id: numericId },
       data: updateStandardClauseDto,
     });
   }
@@ -117,13 +116,18 @@ export class TemplateService {
   }
 
   async getTemplateVersions(id: string): Promise<StandardClause[]> {
-    const currentVersion = await this.findOne(id);
+    let currentVersion = await this.findOne(id);
     const versions: StandardClause[] = [currentVersion];
-    let previousVersion = currentVersion.previousVersion;
 
-    while (previousVersion) {
-      versions.push(previousVersion);
-      previousVersion = previousVersion.previousVersion;
+    while (currentVersion.previousVersionId) {
+      currentVersion = await this.prisma.standardClause.findUnique({
+        where: { id: currentVersion.previousVersionId },
+      });
+      if (currentVersion) {
+        versions.push(currentVersion);
+      } else {
+        break;
+      }
     }
 
     return versions.reverse();

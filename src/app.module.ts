@@ -12,21 +12,21 @@ import googleConfig from './auth-google/config/google.config';
 import appleConfig from './auth-apple/config/apple.config';
 import path from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+// import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthAppleModule } from './auth-apple/auth-apple.module';
 import { AuthFacebookModule } from './auth-facebook/auth-facebook.module';
 import { AuthGoogleModule } from './auth-google/auth-google.module';
 import { HeaderResolver, I18nModule } from 'nestjs-i18n';
-import { TypeOrmConfigService } from './database/typeorm-config.service';
+// import { TypeOrmConfigService } from './database/typeorm-config.service';
 import { MailModule } from './mail/mail.module';
 import { HomeModule } from './home/home.module';
-import { DataSource, DataSourceOptions } from 'typeorm';
+// import { DataSource, DataSourceOptions } from 'typeorm';
 import { AllConfigType } from './config/config.type';
 import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import { MongooseConfigService } from './database/mongoose-config.service';
-import { DatabaseConfig } from './database/config/database-config.type';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { MongooseConfigService } from './database/config/mongoose-config.service';
+// import { DatabaseConfig } from './database/config/database.config';
 import { StandardClausesModule } from './modules/standard-clauses/standard-clauses.module';
 import { ContractModule } from './modules/contract/contract.module';
 import { TemplatesModule } from './templates/templates.module';
@@ -34,17 +34,18 @@ import { RulesModule } from './modules/rules/rules.module';
 import { VersionControlModule } from './modules/version-control/version-control.module';
 
 // <database-block>
-const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
-  .isDocumentDatabase
-  ? MongooseModule.forRootAsync({
-      useClass: MongooseConfigService,
-    })
-  : TypeOrmModule.forRootAsync({
-      useClass: TypeOrmConfigService,
-      dataSourceFactory: async (options: DataSourceOptions) => {
-        return new DataSource(options).initialize();
-      },
-    });
+// TODO: Replace this logic with Prisma integration
+// const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
+//   .isDocumentDatabase
+//   ? MongooseModule.forRootAsync({
+//       useClass: MongooseConfigService,
+//     })
+//   : TypeOrmModule.forRootAsync({
+//       useClass: TypeOrmConfigService,
+//       dataSourceFactory: async (options: DataSourceOptions) => {
+//         return new DataSource(options).initialize();
+//       },
+//     });
 // </database-block>
 
 @Module({
@@ -63,7 +64,7 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
       ],
       envFilePath: ['.env'],
     }),
-    infrastructureDatabaseModule,
+    // TODO: Add PrismaModule here when migration is complete
     I18nModule.forRootAsync({
       useFactory: (configService: ConfigService<AllConfigType>) => ({
         fallbackLanguage: configService.getOrThrow('app.fallbackLanguage', {

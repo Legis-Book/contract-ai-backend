@@ -16,10 +16,10 @@ import {
 } from '@nestjs/swagger';
 import { StandardClausesService } from './standard-clauses.service';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
-import { StandardClause } from '../../entities/standard-clause.entity';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
-
+import { StandardClauseDto } from './dto/standard-clause.dto';
+import { StandardClause } from '../../../generated/prisma';
 @ApiTags('standard-clauses')
 @Controller('standard-clauses')
 @UseGuards(JwtAuthGuard)
@@ -34,7 +34,7 @@ export class StandardClausesController {
   @ApiResponse({
     status: 201,
     description: 'The standard clause has been successfully created.',
-    type: StandardClause,
+    type: StandardClauseDto,
   })
   create(
     @Body() createStandardClauseDto: CreateStandardClauseDto,
@@ -47,7 +47,7 @@ export class StandardClausesController {
   @ApiResponse({
     status: 200,
     description: 'Return all standard clauses.',
-    type: [StandardClause],
+    type: [StandardClauseDto],
   })
   findAll(): Promise<StandardClause[]> {
     return this.standardClausesService.findAll();
@@ -58,7 +58,7 @@ export class StandardClausesController {
   @ApiResponse({
     status: 200,
     description: 'Return the standard clause.',
-    type: StandardClause,
+    type: StandardClauseDto,
   })
   @ApiResponse({ status: 404, description: 'Standard clause not found.' })
   findOne(@Param('id') id: string): Promise<StandardClause> {
@@ -70,7 +70,7 @@ export class StandardClausesController {
   @ApiResponse({
     status: 200,
     description: 'Return the standard clauses of specified type.',
-    type: [StandardClause],
+    type: [StandardClauseDto],
   })
   findByType(@Param('type') type: string): Promise<StandardClause[]> {
     return this.standardClausesService.findByType(type);
@@ -81,7 +81,7 @@ export class StandardClausesController {
   @ApiResponse({
     status: 200,
     description: 'Return clauses for the contract type.',
-    type: [StandardClause],
+    type: [StandardClauseDto],
   })
   findByContractType(
     @Param('contractType') contractType: string,
@@ -94,7 +94,7 @@ export class StandardClausesController {
   @ApiResponse({
     status: 200,
     description: 'The standard clause has been successfully updated.',
-    type: StandardClause,
+    type: StandardClauseDto,
   })
   @ApiResponse({ status: 404, description: 'Standard clause not found.' })
   update(

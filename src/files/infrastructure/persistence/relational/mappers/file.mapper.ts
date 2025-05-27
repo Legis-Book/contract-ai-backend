@@ -1,18 +1,20 @@
+// TODO: Migrate to Prisma
+// import { FileEntity } from '../entities/file.entity';
 import { FileType } from '../../../../domain/file';
-import { FileEntity } from '../entities/file.entity';
+import { File } from '@prisma/client';
+// import { raw } from 'objection';
 
 export class FileMapper {
-  static toDomain(raw: FileEntity): FileType {
+  static toDomain(raw: File): FileType {
     const domainEntity = new FileType();
     domainEntity.id = raw.id;
     domainEntity.path = raw.path;
     return domainEntity;
   }
 
-  static toPersistence(domainEntity: FileType): FileEntity {
-    const persistenceEntity = new FileEntity();
-    persistenceEntity.id = domainEntity.id;
-    persistenceEntity.path = domainEntity.path;
-    return persistenceEntity;
+  static toPersistence(domainEntity: Omit<FileType, 'id'>): { path: string } {
+    return {
+      path: domainEntity.path,
+    };
   }
 }

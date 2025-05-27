@@ -79,13 +79,13 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { contractId, question } = data;
     try {
       const contract = await this.contractService.findOne(contractId);
-      if (!contract.fullText) {
+      if (!contract.originalText) {
         client.emit('error', { message: 'Contract text is required for Q&A' });
         return;
       }
       const answer = await this.aiService.answerQuestion(
         question,
-        contract.fullText,
+        contract.originalText,
       );
       client.emit('qnaAnswer', {
         answer: answer.answer,

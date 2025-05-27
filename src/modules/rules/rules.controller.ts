@@ -11,7 +11,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RulesService } from './rules.service';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
-import { Rule } from '../../entities/rule.entity';
+// import { Rule } from '../../entities/rule.entity';
 
 @ApiTags('rules')
 @Controller('rules')
@@ -20,14 +20,14 @@ export class RulesController {
 
   @Get()
   @ApiOperation({ summary: 'List rules' })
-  @ApiResponse({ status: 200, type: [Rule] })
+  @ApiResponse({ status: 200, type: Object })
   findAll() {
     return this.rulesService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get rule by id' })
-  @ApiResponse({ status: 200, type: Rule })
+  @ApiResponse({ status: 200, type: Object })
   @ApiResponse({ status: 404, description: 'Rule not found' })
   findOne(@Param('id') id: string) {
     return this.rulesService.findOne(id);
@@ -35,7 +35,7 @@ export class RulesController {
 
   @Post()
   @ApiOperation({ summary: 'Create rule' })
-  @ApiResponse({ status: 201, type: Rule })
+  @ApiResponse({ status: 201, type: Object })
   @ApiResponse({
     status: 400,
     description:
@@ -58,7 +58,7 @@ export class RulesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update rule' })
-  @ApiResponse({ status: 200, type: Rule })
+  @ApiResponse({ status: 200, type: Object })
   @ApiResponse({
     status: 400,
     description:
