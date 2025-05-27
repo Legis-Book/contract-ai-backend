@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ObjectStoreService } from './object-store.service';
+import { OutboxService } from './outbox.service';
+import { GraphService } from './graph.service';
 import {
   VcEntityType,
   VcObjectType,
@@ -9,7 +12,12 @@ import crypto from 'crypto';
 
 @Injectable()
 export class VersionControlService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly objectStore: ObjectStoreService,
+    private readonly outbox: OutboxService,
+    private readonly graph: GraphService,
+  ) {}
 
   async createRepository(entityType: VcEntityType, entityId: string) {
     return await this.prisma.vcRepo.create({
@@ -47,7 +55,7 @@ export class VersionControlService {
     branch: string,
     treeSha: string,
     message: string,
-    author: string,
+    authorId: number,
   ) {
     await this.ensureRepo(repoId);
     const ref = await this.prisma.vcRef.findUnique({
@@ -57,12 +65,13 @@ export class VersionControlService {
     const commit = {
       tree: treeSha,
       parent: ref.commitSha,
-      author,
+      authorId,
       message,
       timestamp: new Date().toISOString(),
     };
     const data = Buffer.from(JSON.stringify(commit));
     const sha = crypto.createHash('sha256').update(data).digest('hex');
+    await this.objectStore.storeBlobIfAbsent(sha, data);
     await this.prisma.vcObject.upsert({
       where: { sha },
       update: {},
@@ -72,6 +81,34 @@ export class VersionControlService {
       where: { id_repoId: { id: branch, repoId } },
       data: { commitSha: sha },
     });
+    await this.prisma.vcCommitMeta.create({
+      data: {
+        commitSha: sha,
+        repoId,
+        authorId,
+        message,
+        timestamp: new Date(),
+        sizeBytes: data.length,
+        branchHint: branch,
+      },
+    });
+    await this.outbox.publish({
+      action: 'WRITE_COMMIT',
+      repoId,
+      branch,
+      commit: { ...commit, sha },
+    });
+    await this.graph.writeCommit(
+      repoId,
+      {
+        sha,
+        authorId,
+        message,
+        timestamp: commit.timestamp,
+        sizeBytes: data.length,
+      },
+      branch,
+    );
     return sha;
   }
 
