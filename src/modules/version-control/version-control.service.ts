@@ -39,6 +39,12 @@ export class VersionControlService {
 
   async createBranch(repoId: string, name: string, fromCommit: string) {
     await this.ensureRepo(repoId);
+    if (fromCommit && fromCommit !== '0') {
+      const commit = await this.prisma.vcObject.findUnique({
+        where: { sha: fromCommit },
+      });
+      if (!commit) throw new NotFoundException('Commit not found');
+    }
     return await this.prisma.vcRef.create({
       data: {
         id: name,
@@ -62,6 +68,11 @@ export class VersionControlService {
       where: { id_repoId: { id: branch, repoId } },
     });
     if (!ref) throw new NotFoundException('Branch not found');
+    const treeExists = await this.prisma.vcObject.findUnique({
+      where: { sha: treeSha },
+    });
+    if (!treeExists || treeExists.type !== VcObjectType.tree)
+      throw new NotFoundException('Tree not found');
     const commit = {
       tree: treeSha,
       parent: ref.commitSha,
@@ -71,12 +82,15 @@ export class VersionControlService {
     };
     const data = Buffer.from(JSON.stringify(commit));
     const sha = crypto.createHash('sha256').update(data).digest('hex');
-    await this.objectStore.storeBlobIfAbsent(sha, data);
-    await this.prisma.vcObject.upsert({
-      where: { sha },
-      update: {},
-      create: { sha, data, type: VcObjectType.commit },
-    });
+    const existing = await this.prisma.vcObject.findUnique({ where: { sha } });
+    if (!existing) {
+      await this.objectStore.storeBlobIfAbsent(sha, data);
+      await this.prisma.vcObject.create({
+        data: { sha, data, type: VcObjectType.commit },
+      });
+    } else if (!existing.data.equals(data)) {
+      throw new Error('SHA collision for commit');
+    }
     await this.prisma.vcRef.update({
       where: { id_repoId: { id: branch, repoId } },
       data: { commitSha: sha },
@@ -87,7 +101,7 @@ export class VersionControlService {
         repoId,
         authorId,
         message,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         sizeBytes: data.length,
         branchHint: branch,
       },

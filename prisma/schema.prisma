@@ -265,10 +265,11 @@ model VcRepo {
 model VcRef {
   id        String    @id
   repoId    String
-  commitSha String
+  commitSha String     @db.Char(64)
   refType   VcRefType
   isMutable Boolean   @default(true)
   repo      VcRepo    @relation(fields: [repoId], references: [id])
+  commit    VcObject  @relation(fields: [commitSha], references: [sha])
 }
 
 model VcPr {
