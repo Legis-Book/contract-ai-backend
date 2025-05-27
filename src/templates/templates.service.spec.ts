@@ -1,34 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { TemplatesService } from './templates.service';
-import { StandardClause } from './entities/standard-clause.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { StandardClause } from '../../generated/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 
 describe('TemplatesService', () => {
   let service: TemplatesService;
-  let repository: jest.Mocked<Repository<StandardClause>>;
+  let prisma: { standardClause: { [method: string]: jest.Mock } };
 
   beforeEach(async () => {
+    prisma = {
+      standardClause: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TemplatesService,
-        {
-          provide: getRepositoryToken(StandardClause),
-          useValue: {
-            create: jest.fn(),
-            save: jest.fn(),
-            find: jest.fn(),
-            findOne: jest.fn(),
-          },
-        },
+        { provide: PrismaService, useValue: prisma },
       ],
     }).compile();
 
     service = module.get(TemplatesService);
-    repository = module.get(getRepositoryToken(StandardClause));
   });
 
   describe('create', () => {
@@ -38,43 +37,40 @@ describe('TemplatesService', () => {
         type: 'NDA',
         content: 'Text',
       } as CreateStandardClauseDto;
-      const created: StandardClause = {
+      const created = {
         id: '1',
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         ...dto,
-      } as StandardClause;
+      } as unknown as StandardClause;
 
-      repository.create.mockReturnValue(created);
-      repository.save.mockResolvedValue(created);
+      prisma.standardClause.create.mockResolvedValue(created);
 
       const result = await service.create(dto);
 
-      expect(repository.create).toHaveBeenCalledWith({
-        isActive: true,
-        ...dto,
+      expect(prisma.standardClause.create).toHaveBeenCalledWith({
+        data: { isActive: true, ...dto },
       });
-      expect(repository.save).toHaveBeenCalledWith(created);
       expect(result).toBe(created);
     });
   });
 
   describe('findOne', () => {
     it('should return a clause by id', async () => {
-      const clause = { id: '1' } as StandardClause;
-      repository.findOne.mockResolvedValue(clause);
+      const clause = { id: '1' } as unknown as StandardClause;
+      prisma.standardClause.findUnique.mockResolvedValue(clause);
 
       const result = await service.findOne('1');
 
-      expect(repository.findOne).toHaveBeenCalledWith({
-        where: { id: '1', isActive: true },
+      expect(prisma.standardClause.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
       });
       expect(result).toBe(clause);
     });
 
     it('should throw NotFoundException if clause does not exist', async () => {
-      repository.findOne.mockResolvedValue(null);
+      prisma.standardClause.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne('2')).rejects.toBeInstanceOf(
         NotFoundException,
@@ -84,24 +80,28 @@ describe('TemplatesService', () => {
 
   describe('update', () => {
     it('should update a clause', async () => {
-      const clause = { id: '1', name: 'A' } as StandardClause;
+      const clause = { id: '1', name: 'A' } as unknown as StandardClause;
       const dto: UpdateStandardClauseDto = {
         name: 'B',
       } as UpdateStandardClauseDto;
 
-      repository.findOne.mockResolvedValue(clause);
-      repository.save.mockImplementation(
-        async (value) => (await value) as StandardClause,
-      );
+      prisma.standardClause.findUnique.mockResolvedValue(clause);
+      prisma.standardClause.update.mockResolvedValue({
+        ...clause,
+        ...dto,
+      });
 
       const result = await service.update('1', dto);
 
-      expect(repository.save).toHaveBeenCalledWith({ ...clause, ...dto });
+      expect(prisma.standardClause.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: dto,
+      });
       expect(result).toEqual({ ...clause, ...dto });
     });
 
     it('should throw NotFoundException if clause does not exist', async () => {
-      repository.findOne.mockResolvedValue(null);
+      prisma.standardClause.findUnique.mockResolvedValue(null);
 
       await expect(
         service.update('nonexistent', { name: 'New Name' }),
@@ -111,21 +111,23 @@ describe('TemplatesService', () => {
 
   describe('remove', () => {
     it('should mark a clause as inactive', async () => {
-      const clause = { id: '1', isActive: true } as StandardClause;
+      const clause = { id: '1', isActive: true } as unknown as StandardClause;
 
-      repository.findOne.mockResolvedValue(clause);
-      repository.save.mockResolvedValue({ ...clause, isActive: false });
+      prisma.standardClause.update.mockResolvedValue({
+        ...clause,
+        isActive: false,
+      });
 
       await service.remove('1');
 
-      expect(repository.save).toHaveBeenCalledWith({
-        ...clause,
-        isActive: false,
+      expect(prisma.standardClause.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: { isActive: false },
       });
     });
 
     it('should throw NotFoundException if clause does not exist', async () => {
-      repository.findOne.mockResolvedValue(null);
+      prisma.standardClause.update.mockRejectedValue(new NotFoundException());
 
       await expect(service.remove('nonexistent')).rejects.toBeInstanceOf(
         NotFoundException,
@@ -135,14 +137,14 @@ describe('TemplatesService', () => {
 
   describe('findByType', () => {
     it('should return clauses by type', async () => {
-      const clauses = [{ id: '1' }] as StandardClause[];
-      repository.find.mockResolvedValue(clauses);
+      const clauses = [{ id: '1' }] as unknown as StandardClause[];
+      prisma.standardClause.findMany.mockResolvedValue(clauses);
 
       const result = await service.findByType('NDA');
 
-      expect(repository.find).toHaveBeenCalledWith({
+      expect(prisma.standardClause.findMany).toHaveBeenCalledWith({
         where: { type: 'NDA', isActive: true },
-        order: { createdAt: 'DESC' },
+        orderBy: { createdAt: 'DESC' },
       });
       expect(result).toBe(clauses);
     });
@@ -150,14 +152,14 @@ describe('TemplatesService', () => {
 
   describe('findByJurisdiction', () => {
     it('should return clauses by jurisdiction', async () => {
-      const clauses = [{ id: '1' }] as StandardClause[];
-      repository.find.mockResolvedValue(clauses);
+      const clauses = [{ id: '1' }] as unknown as StandardClause[];
+      prisma.standardClause.findMany.mockResolvedValue(clauses);
 
       const result = await service.findByJurisdiction('US');
 
-      expect(repository.find).toHaveBeenCalledWith({
+      expect(prisma.standardClause.findMany).toHaveBeenCalledWith({
         where: { jurisdiction: 'US', isActive: true },
-        order: { createdAt: 'DESC' },
+        orderBy: { createdAt: 'DESC' },
       });
       expect(result).toBe(clauses);
     });

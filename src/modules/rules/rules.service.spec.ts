@@ -1,35 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { RulesService } from './rules.service';
 import { Rule } from '../../entities/rule.entity';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('RulesService', () => {
   let service: RulesService;
-  let repository: jest.Mocked<Repository<Rule>>;
+  let prisma: { rule: { [method: string]: jest.Mock } };
 
   beforeEach(async () => {
+    prisma = {
+      rule: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        RulesService,
-        {
-          provide: getRepositoryToken(Rule),
-          useValue: {
-            create: jest.fn(),
-            save: jest.fn(),
-            find: jest.fn(),
-            findOne: jest.fn(),
-            remove: jest.fn(),
-          },
-        },
-      ],
+      providers: [RulesService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get(RulesService);
-    repository = module.get(getRepositoryToken(Rule));
   });
 
   describe('create', () => {
@@ -39,13 +35,11 @@ describe('RulesService', () => {
         similarityThreshold: 10,
       } as CreateRuleDto;
       const rule = { id: '1', ...dto } as Rule;
-      repository.create.mockReturnValue(rule);
-      repository.save.mockResolvedValue(rule);
+      prisma.rule.create.mockResolvedValue(rule);
 
       const result = await service.create(dto);
 
-      expect(repository.create).toHaveBeenCalledWith(dto);
-      expect(repository.save).toHaveBeenCalledWith(rule);
+      expect(prisma.rule.create).toHaveBeenCalledWith({ data: dto });
       expect(result).toBe(rule);
     });
 
@@ -65,15 +59,17 @@ describe('RulesService', () => {
   describe('findOne', () => {
     it('should return a rule when found', async () => {
       const rule = { id: '1', name: 'Test' } as Rule;
-      repository.findOne.mockResolvedValue(rule);
+      prisma.rule.findUnique.mockResolvedValue(rule);
 
       const result = await service.findOne('1');
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(prisma.rule.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(result).toBe(rule);
     });
 
     it('should throw NotFoundException when rule not found', async () => {
-      repository.findOne.mockResolvedValue(null);
+      prisma.rule.findUnique.mockResolvedValue(null);
       await expect(service.findOne('2')).rejects.toBeInstanceOf(
         NotFoundException,
       );
@@ -83,23 +79,23 @@ describe('RulesService', () => {
   describe('update', () => {
     it('should update an existing rule', async () => {
       const rule = { id: '1', name: 'Test' } as Rule;
-      repository.findOne.mockResolvedValue(rule);
-      repository.save.mockResolvedValue({ ...rule, name: 'Updated' });
+      prisma.rule.findUnique.mockResolvedValue(rule);
+      prisma.rule.update.mockResolvedValue({ ...rule, name: 'Updated' });
 
       const result = await service.update('1', {
         name: 'Updated',
       } as UpdateRuleDto);
 
-      expect(repository.save).toHaveBeenCalledWith({
-        ...rule,
-        name: 'Updated',
+      expect(prisma.rule.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: { name: 'Updated' },
       });
       expect(result.name).toBe('Updated');
     });
 
     it('should throw BadRequestException when thresholds conflict', async () => {
       const rule = { id: '1', name: 'Test' } as Rule;
-      repository.findOne.mockResolvedValue(rule);
+      prisma.rule.findUnique.mockResolvedValue(rule);
 
       await expect(
         service.update('1', {
@@ -113,11 +109,11 @@ describe('RulesService', () => {
   describe('remove', () => {
     it('should remove a rule', async () => {
       const rule = { id: '1' } as Rule;
-      repository.findOne.mockResolvedValue(rule);
-      repository.remove.mockResolvedValue(rule);
+      prisma.rule.findUnique.mockResolvedValue(rule);
+      prisma.rule.delete.mockResolvedValue(rule);
 
       await service.remove('1');
-      expect(repository.remove).toHaveBeenCalledWith(rule);
+      expect(prisma.rule.delete).toHaveBeenCalledWith({ where: { id: '1' } });
     });
   });
 });

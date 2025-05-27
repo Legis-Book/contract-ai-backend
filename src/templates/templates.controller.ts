@@ -10,7 +10,7 @@ import {
 import { TemplatesService } from './templates.service';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
-import { StandardClause } from './entities/standard-clause.entity';
+import { StandardClause } from '../../generated/prisma';
 
 @Controller('templates')
 export class TemplatesController {
