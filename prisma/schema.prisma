@@ -136,64 +136,6 @@ model Session {
 }
 
 model Contract {
-  id           String         @id @default(uuid())
-  title        String
-  filename     String
-  contractType String
-  fullText     String?
-  governingLaw String?
-  parties      String?
-  status       ContractStatus @default(pending_review)
-  language     String?
-  clauses      Clause[]
-  riskFlags    RiskFlag[]
-  summaries    Summary[]
-  qnas         QnA[]
-  reviews      HumanReview[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-}
-
-model Clause {
-  id                String     @id @default(uuid())
-  clauseNumber      String
-  title             String?
-  text              String
-  type              String?
-  classification    String?
-  riskLevel         RiskLevel?
-  riskJustification String?
-  obligation        String?
-  entities          String[]
-  amounts           String[]
-  dates             String[]
-  legalReferences   String[]
-  startIndex        Int?
-  endIndex          Int?
-  confidence        Float?
-  contractId        String
-  contract          Contract   @relation(fields: [contractId], references: [id])
-  riskFlags         RiskFlag[]
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-}
-
-model RiskFlag {
-  id            String           @id @default(uuid())
-  flagType      RiskFlagType
-  description   String
-  severity      RiskFlagSeverity @default(MEDIUM)
-  suggestedText String?
-  notes         String?
-  status        RiskFlagStatus   @default(open)
-  isResolved    Boolean          @default(false)
-  contractId    String
-  contract      Contract         @relation(fields: [contractId], references: [id])
-  clauseId      String?
-  clause        Clause?          @relation(fields: [clauseId], references: [id])
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-=======
   id                  String        @id @default(uuid())
   title               String
   type                ContractType  @default(OTHER)
@@ -441,6 +383,7 @@ model VcCommitMeta {
   branchHint String?
   repo       VcRepo     @relation(fields: [repoId], references: [id])
   author     UserEntity @relation("CommitAuthor", fields: [authorId], references: [id])
+  commit     VcObject   @relation(fields: [commitSha], references: [sha])
 }
 
 enum VcOutboxStatus {
