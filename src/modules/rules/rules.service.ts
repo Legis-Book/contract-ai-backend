@@ -3,17 +3,14 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import { Rule } from '../../../generated/prisma';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
 
 @Injectable()
 export class RulesService {
-  private prisma: PrismaClient;
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   private validateThresholds(dto: CreateRuleDto | UpdateRuleDto) {
     if (

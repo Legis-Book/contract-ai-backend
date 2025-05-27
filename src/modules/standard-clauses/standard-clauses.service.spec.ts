@@ -1,33 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { StandardClausesService } from './standard-clauses.service';
 import { StandardClause } from '../../entities/standard-clause.entity';
 import { NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('StandardClausesService', () => {
   let service: StandardClausesService;
-  let repo: jest.Mocked<Repository<StandardClause>>;
+  let prisma: { standardClause: { [method: string]: jest.Mock } };
 
   beforeEach(async () => {
+    prisma = {
+      standardClause: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        delete: jest.fn(),
+        update: jest.fn(),
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StandardClausesService,
-        {
-          provide: getRepositoryToken(StandardClause),
-          useValue: {
-            create: jest.fn(),
-            save: jest.fn(),
-            find: jest.fn(),
-            findOne: jest.fn(),
-            delete: jest.fn(),
-          },
-        },
+        { provide: PrismaService, useValue: prisma },
       ],
     }).compile();
 
     service = module.get(StandardClausesService);
-    repo = module.get(getRepositoryToken(StandardClause));
   });
 
   describe('create', () => {
@@ -38,31 +37,31 @@ describe('StandardClausesService', () => {
         contractType: 'c',
         text: 'txt',
       };
-      const entity = { id: 1, ...dto } as StandardClause;
-      (repo.create as jest.Mock).mockReturnValue(entity);
-      (repo.save as jest.Mock).mockResolvedValue(entity);
+      const entity = { id: 1, ...dto } as unknown as StandardClause;
+      prisma.standardClause.create.mockResolvedValue(entity);
 
       const result = await service.create(dto);
 
-      expect(repo.create).toHaveBeenCalledWith(dto);
-      expect(repo.save).toHaveBeenCalledWith(entity);
+      expect(prisma.standardClause.create).toHaveBeenCalledWith({ data: dto });
       expect(result).toBe(entity);
     });
   });
 
   describe('findOne', () => {
     it('should return clause when found', async () => {
-      const clause = { id: 1 } as StandardClause;
-      (repo.findOne as jest.Mock).mockResolvedValue(clause);
+      const clause = { id: 1 } as unknown as StandardClause;
+      prisma.standardClause.findUnique.mockResolvedValue(clause);
 
       const result = await service.findOne(1);
 
-      expect(repo.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(prisma.standardClause.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
       expect(result).toBe(clause);
     });
 
     it('should throw NotFoundException when not found', async () => {
-      (repo.findOne as jest.Mock).mockResolvedValue(undefined);
+      prisma.standardClause.findUnique.mockResolvedValue(undefined);
 
       await expect(service.findOne(2)).rejects.toBeInstanceOf(
         NotFoundException,
@@ -72,25 +71,27 @@ describe('StandardClausesService', () => {
 
   describe('remove', () => {
     it('should delete clause', async () => {
-      (repo.delete as jest.Mock).mockResolvedValue({ affected: 1 });
+      prisma.standardClause.delete.mockResolvedValue({});
       await service.remove(1);
-      expect(repo.delete).toHaveBeenCalledWith(1);
+      expect(prisma.standardClause.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
 
     it('should throw NotFoundException when nothing deleted', async () => {
-      (repo.delete as jest.Mock).mockResolvedValue({ affected: 0 });
+      prisma.standardClause.delete.mockRejectedValue({ code: 'P2025' });
       await expect(service.remove(1)).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
   describe('findAll', () => {
     it('should return all clauses', async () => {
-      const clauses = [{ id: 1 }, { id: 2 }] as StandardClause[];
-      (repo.find as jest.Mock).mockResolvedValue(clauses);
+      const clauses = [{ id: 1 }, { id: 2 }] as unknown as StandardClause[];
+      prisma.standardClause.findMany.mockResolvedValue(clauses);
 
       const result = await service.findAll();
 
-      expect(repo.find).toHaveBeenCalled();
+      expect(prisma.standardClause.findMany).toHaveBeenCalled();
       expect(result).toBe(clauses);
     });
   });
@@ -98,12 +99,14 @@ describe('StandardClausesService', () => {
   describe('findByType', () => {
     it('should return clauses by type', async () => {
       const type = 'confidentiality';
-      const clauses = [{ id: 1, type }] as StandardClause[];
-      (repo.find as jest.Mock).mockResolvedValue(clauses);
+      const clauses = [{ id: 1, type }] as unknown as StandardClause[];
+      prisma.standardClause.findMany.mockResolvedValue(clauses);
 
       const result = await service.findByType(type);
 
-      expect(repo.find).toHaveBeenCalledWith({ where: { type } });
+      expect(prisma.standardClause.findMany).toHaveBeenCalledWith({
+        where: { type },
+      });
       expect(result).toBe(clauses);
     });
   });
@@ -111,12 +114,14 @@ describe('StandardClausesService', () => {
   describe('findByContractType', () => {
     it('should return clauses by contract type', async () => {
       const contractType = 'NDA';
-      const clauses = [{ id: 1, contractType }] as StandardClause[];
-      (repo.find as jest.Mock).mockResolvedValue(clauses);
+      const clauses = [{ id: 1, contractType }] as unknown as StandardClause[];
+      prisma.standardClause.findMany.mockResolvedValue(clauses);
 
       const result = await service.findByContractType(contractType);
 
-      expect(repo.find).toHaveBeenCalledWith({ where: { contractType } });
+      expect(prisma.standardClause.findMany).toHaveBeenCalledWith({
+        where: { contractType },
+      });
       expect(result).toBe(clauses);
     });
   });
@@ -130,18 +135,21 @@ describe('StandardClausesService', () => {
         type: 't',
         contractType: 'c',
         text: 'txt',
-      } as StandardClause;
+      } as unknown as StandardClause;
       const dto = { name: 'B', text: 'new text' };
-      const updated = { ...existing, ...dto } as StandardClause;
+      const updated = { ...existing, ...dto } as unknown as StandardClause;
       const findOneMock = jest
         .spyOn(service, 'findOne')
         .mockResolvedValue(existing);
-      (repo.save as jest.Mock).mockResolvedValue(updated);
+      prisma.standardClause.update.mockResolvedValue(updated);
 
       const result = await service.update(id, dto);
 
       expect(service.findOne).toHaveBeenCalledWith(id);
-      expect(repo.save).toHaveBeenCalledWith({ ...existing, ...dto });
+      expect(prisma.standardClause.update).toHaveBeenCalledWith({
+        where: { id },
+        data: dto,
+      });
       expect(result).toBe(updated);
 
       findOneMock.mockRestore();

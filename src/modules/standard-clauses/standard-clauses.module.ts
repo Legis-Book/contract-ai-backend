@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StandardClause } from '../../entities/standard-clause.entity';
 import { StandardClausesService } from './standard-clauses.service';
 import { StandardClausesController } from './standard-clauses.controller';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([StandardClause])],
   controllers: [StandardClausesController],
-  providers: [StandardClausesService],
+  providers: [PrismaService, StandardClausesService],
   exports: [StandardClausesService],
 })
 export class StandardClausesModule {}
