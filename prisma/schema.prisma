@@ -217,3 +217,74 @@ model FileEntity {
   path String
   users UserEntity[]
 }
+
+// Version control enums
+enum VcObjectType {
+  blob
+  tree
+  commit
+  tag
+}
+
+enum VcRefType {
+  branch
+  tag
+}
+
+enum VcEntityType {
+  contract
+  template
+}
+
+enum VcPrStatus {
+  open
+  in_review
+  merged
+  abandoned
+}
+
+model VcObject {
+  sha       String      @id @db.Char(64)
+  data      Bytes
+  type      VcObjectType
+  createdAt DateTime    @default(now())
+}
+
+model VcRepo {
+  id            String    @id @default(uuid())
+  entityType    VcEntityType
+  entityId      String
+  defaultBranch String
+  refs          VcRef[]
+  prs           VcPr[]
+}
+
+model VcRef {
+  id        String   @id
+  repoId    String
+  commitSha String
+  refType   VcRefType
+  isMutable Boolean  @default(true)
+  repo      VcRepo   @relation(fields: [repoId], references: [id])
+}
+
+model VcPr {
+  id             String       @id @default(uuid())
+  repoId         String
+  sourceBranch   String
+  targetBranch   String
+  status         VcPrStatus
+  createdBy      String
+  createdAt      DateTime     @default(now())
+  mergedCommitSha String?
+  repo           VcRepo       @relation(fields: [repoId], references: [id])
+  conflicts      VcConflict[]
+}
+
+model VcConflict {
+  id     String @id @default(uuid())
+  prId   String
+  index  Int
+  hunk   String?
+  pr     VcPr   @relation(fields: [prId], references: [id])
+}
