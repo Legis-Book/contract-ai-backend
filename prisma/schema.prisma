@@ -204,13 +204,13 @@ model Summary {
 }
 
 model QnA {
-  id              String      @id @default(uuid())
-  question        String
-  answer          String
-  isAccepted      Boolean     @default(false)
+  id         String   @id @default(uuid())
+  question   String
+  answer     String
+  isAccepted Boolean  @default(false)
+  feedback   String?
+  contractId String
   isFlagged       Boolean     @default(false)
-  feedback        String?
-  contractId      String
   contract        Contract    @relation(fields: [contractId], references: [id])
   clauseId        String?
   clause          Clause?     @relation(fields: [clauseId], references: [id])
@@ -233,14 +233,14 @@ model HumanReview {
 }
 
 model Rule {
-  id                   String   @id @default(uuid())
-  name                 String
-  description          String?
-  pattern              String?
-  similarityThreshold  Float?
-  deviationAllowedPct  Float?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                  String   @id @default(uuid())
+  name                String
+  description         String?
+  pattern             String?
+  similarityThreshold Float?
+  deviationAllowedPct Float?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model StandardClause {
@@ -257,4 +257,144 @@ model StandardClause {
   previousVersionId Int?
   previousVersion   StandardClause? @relation("PreviousVersion", fields: [previousVersionId], references: [id])
   nextVersions      StandardClause[] @relation("PreviousVersion")
+}
+
+model UserEntity {
+  id           Int            @id @default(autoincrement())
+  email        String?        @unique
+  password     String?
+  provider     String         @default("email")
+  socialId     String?
+  firstName    String?
+  lastName     String?
+  photoId      String?
+  photo        FileEntity?    @relation(fields: [photoId], references: [id])
+  roleId       Int?
+  role         RoleEntity?    @relation(fields: [roleId], references: [id])
+  reviews      HumanReview[]
+  statusId     Int?
+  status       StatusEntity?  @relation(fields: [statusId], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  commitMetas  VcCommitMeta[] @relation("CommitAuthor")
+  pullRequests VcPr[]         @relation("PrCreatedBy")
+}
+
+model RoleEntity {
+  id    Int          @id
+  name  String?
+  users UserEntity[]
+}
+
+model StatusEntity {
+  id    Int          @id
+  name  String?
+  users UserEntity[]
+}
+
+model FileEntity {
+  id    String       @id @default(uuid())
+  path  String
+  users UserEntity[]
+}
+
+// Version control enums
+enum VcObjectType {
+  blob
+  tree
+  commit
+  tag
+}
+
+enum VcRefType {
+  branch
+  tag
+}
+
+enum VcEntityType {
+  contract
+  template
+}
+
+enum VcPrStatus {
+  open
+  in_review
+  merged
+  abandoned
+}
+
+model VcObject {
+  sha       String       @id @db.Char(64)
+  data      Bytes
+  type      VcObjectType
+  createdAt DateTime     @default(now())
+}
+
+model VcRepo {
+  id            String         @id @default(uuid())
+  entityType    VcEntityType
+  entityId      String
+  defaultBranch String
+  refs          VcRef[]
+  prs           VcPr[]
+  VcCommitMeta  VcCommitMeta[]
+}
+
+model VcRef {
+  id        String    @id
+  repoId    String
+  commitSha String     @db.Char(64)
+  refType   VcRefType
+  isMutable Boolean   @default(true)
+  repo      VcRepo    @relation(fields: [repoId], references: [id])
+  commit    VcObject  @relation(fields: [commitSha], references: [sha])
+}
+
+model VcPr {
+  id              String       @id @default(uuid())
+  repoId          String
+  sourceBranch    String
+  targetBranch    String
+  status          VcPrStatus
+  createdById     Int
+  createdAt       DateTime     @default(now())
+  mergedCommitSha String?
+  repo            VcRepo       @relation(fields: [repoId], references: [id])
+  createdBy       UserEntity   @relation("PrCreatedBy", fields: [createdById], references: [id])
+  conflicts       VcConflict[]
+}
+
+model VcConflict {
+  id    String  @id @default(uuid())
+  prId  String
+  index Int
+  hunk  String?
+  pr    VcPr    @relation(fields: [prId], references: [id])
+}
+
+model VcCommitMeta {
+  commitSha  String     @id @db.Char(64)
+  repoId     String
+  authorId   Int
+  message    String
+  timestamp  DateTime   @default(now())
+  sizeBytes  Int
+  branchHint String?
+  repo       VcRepo     @relation(fields: [repoId], references: [id])
+  author     UserEntity @relation("CommitAuthor", fields: [authorId], references: [id])
+  commit     VcObject   @relation(fields: [commitSha], references: [sha])
+}
+
+enum VcOutboxStatus {
+  NEW
+  SENT
+  ERR
+}
+
+model VcOutbox {
+  id        String         @id @default(uuid())
+  payload   Json
+  status    VcOutboxStatus @default(NEW)
+  createdAt DateTime       @default(now())
 }

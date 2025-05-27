@@ -31,6 +31,7 @@ import { StandardClausesModule } from './modules/standard-clauses/standard-claus
 import { ContractModule } from './modules/contract/contract.module';
 import { TemplatesModule } from './templates/templates.module';
 import { RulesModule } from './modules/rules/rules.module';
+import { VersionControlModule } from './modules/version-control/version-control.module';
 
 // <database-block>
 // TODO: Replace this logic with Prisma integration
@@ -101,6 +102,7 @@ import { RulesModule } from './modules/rules/rules.module';
     ContractModule,
     TemplatesModule,
     RulesModule,
+    VersionControlModule,
   ],
 })
 export class AppModule {}
