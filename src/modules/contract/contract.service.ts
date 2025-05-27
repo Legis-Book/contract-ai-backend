@@ -3,14 +3,14 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Contract } from '../../entities/contract.entity';
-import { Clause } from '../../entities/clause.entity';
-import { RiskFlag } from '../../entities/risk-flag.entity';
-import { Summary } from '../../entities/summary.entity';
-import { QnA } from '../../entities/qna.entity';
-import { HumanReview } from '../../entities/human-review.entity';
+import { PrismaClient } from '@prisma/client';
+import {
+  Contract,
+  Summary,
+  RiskFlag,
+  QnA,
+  HumanReview,
+} from '../../../generated/prisma';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { AiService } from '../ai/ai.service';
@@ -28,43 +28,41 @@ export interface ExportAnalysisResult {
 
 @Injectable()
 export class ContractService {
-  constructor(
-    @InjectRepository(Contract)
-    private contractRepository: Repository<Contract>,
-    @InjectRepository(Clause)
-    private clauseRepository: Repository<Clause>,
-    @InjectRepository(RiskFlag)
-    private riskFlagRepository: Repository<RiskFlag>,
-    @InjectRepository(Summary)
-    private summaryRepository: Repository<Summary>,
-    @InjectRepository(QnA)
-    private qnaRepository: Repository<QnA>,
-    @InjectRepository(HumanReview)
-    private humanReviewRepository: Repository<HumanReview>,
-    private aiService: AiService,
-  ) {}
+  private prisma: PrismaClient;
+  constructor(private aiService: AiService) {
+    this.prisma = new PrismaClient();
+  }
 
   async create(createContractDto: CreateContractDto): Promise<Contract> {
-    const contract = this.contractRepository.create(createContractDto);
-    return await this.contractRepository.save(contract);
+    return await this.prisma.contract.create({ data: createContractDto });
   }
 
   async findAll(): Promise<Contract[]> {
-    return await this.contractRepository.find({
-      relations: ['clauses', 'riskFlags', 'summaries', 'qnas', 'reviews'],
+    return await this.prisma.contract.findMany({
+      include: {
+        clauses: true,
+        riskFlags: true,
+        summaries: true,
+        qnas: true,
+        reviews: true,
+      },
     });
   }
 
   async findOne(id: string): Promise<Contract> {
-    const contract = await this.contractRepository.findOne({
+    const contract = await this.prisma.contract.findUnique({
       where: { id },
-      relations: ['clauses', 'riskFlags', 'summaries', 'qnas', 'reviews'],
+      include: {
+        clauses: true,
+        riskFlags: true,
+        summaries: true,
+        qnas: true,
+        reviews: true,
+      },
     });
-
     if (!contract) {
       throw new NotFoundException(`Contract with ID ${id} not found`);
     }
-
     return contract;
   }
 
@@ -72,14 +70,16 @@ export class ContractService {
     id: string,
     updateContractDto: UpdateContractDto,
   ): Promise<Contract> {
-    const contract = await this.findOne(id);
-    Object.assign(contract, updateContractDto);
-    return await this.contractRepository.save(contract);
+    await this.findOne(id); // Throws if not found
+    return await this.prisma.contract.update({
+      where: { id },
+      data: updateContractDto,
+    });
   }
 
   async remove(id: string): Promise<void> {
-    const contract = await this.findOne(id);
-    await this.contractRepository.remove(contract);
+    await this.findOne(id); // Throws if not found
+    await this.prisma.contract.delete({ where: { id } });
   }
 
   async uploadContract(
@@ -121,22 +121,21 @@ export class ContractService {
       }
     }
 
-    const contract = this.contractRepository.create({
-      title: file.originalname,
-      filename: file.originalname,
-      contractType,
-      status: 'pending_review',
-      fullText,
+    return await this.prisma.contract.create({
+      data: {
+        title: file.originalname,
+        filename: file.originalname,
+        contractType,
+        status: 'pending_review',
+        fullText,
+      },
     });
-
-    return await this.contractRepository.save(contract);
   }
 
   async analyzeContract(id: string): Promise<Contract> {
     const contract = await this.findOne(id);
 
     if (!contract.fullText) {
-      // Try to extract text if file is available (not implemented here, as file is not stored)
       throw new BadRequestException('Contract text is required for analysis');
     }
 
@@ -150,68 +149,89 @@ export class ContractService {
     const transformedClauses = analysis.clauses.map((clauseData) => ({
       ...clauseData,
       id: crypto.randomUUID(), // Generate UUID for clause
+      contractId: contract.id,
     }));
 
     // Transform risks data to match schema
     const transformedRisks = analysis.risks.map((riskData) => ({
       ...riskData,
       id: crypto.randomUUID(), // Generate UUID for risk flag
+      contractId: contract.id,
     }));
 
     // Save clauses
-    const clauses = await Promise.all(
+    await Promise.all(
       transformedClauses.map((clauseData) =>
-        this.clauseRepository.save({
-          ...clauseData,
-          contract,
-        }),
+        this.prisma.clause.create({ data: clauseData }),
       ),
     );
 
     // Save risk flags
-    const riskFlags = await Promise.all(
+    await Promise.all(
       transformedRisks.map((riskData) =>
-        this.riskFlagRepository.save({
-          ...riskData,
-          contract,
-          clause: new Clause(),
-        }),
+        this.prisma.riskFlag.create({ data: riskData }),
       ),
     );
 
     // Save summary
-    const summary = await this.summaryRepository.save({
-      content:
-        typeof analysis.summary === 'string'
-          ? analysis.summary
-          : JSON.stringify(analysis.summary),
-      summaryType: 'FULL',
-      contract,
+    await this.prisma.summary.create({
+      data: {
+        content:
+          typeof analysis.summary === 'string'
+            ? analysis.summary
+            : JSON.stringify(analysis.summary),
+        summaryType: 'FULL',
+        contractId: contract.id,
+      },
     });
 
     // Update contract status
-    contract.status = 'IN_REVIEW';
-    contract.clauses = clauses;
-    contract.riskFlags = riskFlags;
-    contract.summaries = [summary];
+    const updatedContract = await this.prisma.contract.update({
+      where: { id: contract.id },
+      data: {
+        status: 'IN_REVIEW',
+      },
+      include: {
+        clauses: true,
+        riskFlags: true,
+        summaries: true,
+        qnas: true,
+        reviews: true,
+      },
+    });
 
-    return await this.contractRepository.save(contract);
+    return updatedContract;
   }
 
   async getContractSummary(id: string): Promise<Summary[]> {
-    const contract = await this.findOne(id);
+    const contract = await this.prisma.contract.findUnique({
+      where: { id },
+      include: { summaries: true },
+    });
+    if (!contract)
+      throw new NotFoundException(`Contract with ID ${id} not found`);
     return contract.summaries;
   }
 
   async getContractRisks(id: string): Promise<RiskFlag[]> {
-    const contract = await this.findOne(id);
+    const contract = await this.prisma.contract.findUnique({
+      where: { id },
+      include: { riskFlags: true },
+    });
+    if (!contract)
+      throw new NotFoundException(`Contract with ID ${id} not found`);
     return contract.riskFlags;
   }
 
   async getAnalysis(
     id: string,
   ): Promise<{ summaries: Summary[]; riskFlags: RiskFlag[] }> {
-    const contract = await this.findOne(id);
+    const contract = await this.prisma.contract.findUnique({
+      where: { id },
+      include: { summaries: true, riskFlags: true },
+    });
+    if (!contract)
+      throw new NotFoundException(`Contract with ID ${id} not found`);
     return {
       summaries: contract.summaries,
       riskFlags: contract.riskFlags,
@@ -219,7 +239,12 @@ export class ContractService {
   }
 
   async getContractQnA(id: string): Promise<QnA[]> {
-    const contract = await this.findOne(id);
+    const contract = await this.prisma.contract.findUnique({
+      where: { id },
+      include: { qnas: true },
+    });
+    if (!contract)
+      throw new NotFoundException(`Contract with ID ${id} not found`);
     return contract.qnas;
   }
 
@@ -230,20 +255,27 @@ export class ContractService {
     notes?: string,
   ): Promise<RiskFlag> {
     await this.findOne(contractId);
-    const riskFlag = await this.riskFlagRepository.findOne({
-      where: { id: riskId, contract: { id: contractId } },
+    const riskFlag = await this.prisma.riskFlag.findUnique({
+      where: { id: riskId },
     });
-    if (!riskFlag) {
+    if (!riskFlag || riskFlag.contractId !== contractId) {
       throw new NotFoundException(
         `Risk flag with ID ${riskId} not found for contract ${contractId}`,
       );
     }
-    Object.assign(riskFlag, { status, notes });
-    return this.riskFlagRepository.save(riskFlag);
+    return await this.prisma.riskFlag.update({
+      where: { id: riskId },
+      data: { status, notes },
+    });
   }
 
   async exportAnalysis(id: string): Promise<ExportAnalysisResult> {
-    const contract = await this.findOne(id);
+    const contract = await this.prisma.contract.findUnique({
+      where: { id },
+      include: { summaries: true, riskFlags: true, qnas: true },
+    });
+    if (!contract)
+      throw new NotFoundException(`Contract with ID ${id} not found`);
     return {
       contract,
       summaries: contract.summaries,
@@ -253,7 +285,12 @@ export class ContractService {
   }
 
   async getContractReviews(id: string): Promise<HumanReview[]> {
-    const contract = await this.findOne(id);
+    const contract = await this.prisma.contract.findUnique({
+      where: { id },
+      include: { reviews: true },
+    });
+    if (!contract)
+      throw new NotFoundException(`Contract with ID ${id} not found`);
     return contract.reviews;
   }
 
@@ -269,13 +306,13 @@ export class ContractService {
       contract.fullText,
     );
 
-    const qna = await this.qnaRepository.save({
-      question,
-      answer: answer.answer,
-      contract,
+    return await this.prisma.qnA.create({
+      data: {
+        question,
+        answer: answer.answer,
+        contractId: contract.id,
+      },
     });
-
-    return qna;
   }
 
   // Dedicated chat methods for future differentiation
