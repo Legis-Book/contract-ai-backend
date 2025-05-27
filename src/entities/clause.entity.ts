@@ -19,10 +19,13 @@ export class Clause {
   clauseNumber: string;
 
   @Column({ nullable: true })
-  heading: string;
+  title: string;
 
   @Column({ type: 'text' })
   text: string;
+
+  @Column({ nullable: true })
+  type: string;
 
   @Column({ nullable: true })
   classification: string;
@@ -33,6 +36,33 @@ export class Clause {
     nullable: true,
   })
   riskLevel: string;
+
+  @Column({ nullable: true, type: 'text' })
+  riskJustification: string;
+
+  @Column({ nullable: true })
+  obligation: string;
+
+  @Column({ nullable: true, type: 'simple-array' })
+  entities: string[];
+
+  @Column({ nullable: true, type: 'simple-array' })
+  amounts: string[];
+
+  @Column({ nullable: true, type: 'simple-array' })
+  dates: string[];
+
+  @Column({ nullable: true, type: 'simple-array' })
+  legalReferences: string[];
+
+  @Column({ nullable: true, type: 'int' })
+  startIndex: number;
+
+  @Column({ nullable: true, type: 'int' })
+  endIndex: number;
+
+  @Column({ nullable: true, type: 'float' })
+  confidence: number;
 
   @ManyToOne(() => Contract, (contract) => contract.clauses)
   contract: Contract;

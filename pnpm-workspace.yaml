@@ -1,7 +1,10 @@
 onlyBuiltDependencies:
   - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
   - '@scarf/scarf'
   - '@scribe.js/tesseract.js'
   - '@swc/core'
   - core-js
+  - prisma
   - protobufjs

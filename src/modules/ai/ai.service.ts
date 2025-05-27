@@ -207,12 +207,31 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     return result;
   }
 
+  private async analyzeChunk(
+    doc: Document,
+    contractType: string,
+  ): Promise<z.infer<typeof AnalysisSchema>> {
+    const contractAnalysisPrompt = await this.langfuse.getPrompt(
+      'contract-analysis-prompt',
+    );
+    const prompt = PromptTemplate.fromTemplate(contractAnalysisPrompt.prompt);
+    const result = await this.invokeWithSchema<z.infer<typeof AnalysisSchema>>(
+      AnalysisSchema,
+      prompt,
+      {
+        contractType: contractType,
+        text: doc.pageContent,
+      },
+    );
+    return result;
+  }
+
   async analyzeContract(
     text: string,
     contractType: string,
   ): Promise<{
-    clauses: { text: string; type: string }[];
-    risks: { type: string; description: string; severity: string }[];
+    clauses: z.infer<typeof AnalysisSchema>['clauses'];
+    risks: z.infer<typeof AnalysisSchema>['risks'];
     summary: z.infer<typeof ContractSummarySchema>;
   }> {
     // Split the contract into chunks
@@ -235,28 +254,6 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       risks,
       summary,
     };
-  }
-
-  private async analyzeChunk(
-    doc: Document,
-    contractType: string,
-  ): Promise<{
-    clauses: { text: string; type: string }[];
-    risks: { type: string; description: string; severity: string }[];
-  }> {
-    const contractAnalysisPrompt = await this.langfuse.getPrompt(
-      'contract-analysis-prompt',
-    );
-    const prompt = PromptTemplate.fromTemplate(contractAnalysisPrompt.prompt);
-    const result = await this.invokeWithSchema<z.infer<typeof AnalysisSchema>>(
-      AnalysisSchema,
-      prompt,
-      {
-        contractType: contractType,
-        text: doc.pageContent,
-      },
-    );
-    return result;
   }
 
   public async generateSummary(

@@ -31,30 +31,22 @@ const RiskTypeEnum = z.enum([
 const SeverityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
 
 const ClauseSchema = z.object({
-  id: z
-    .number()
-    .int()
-    .describe('Running index starting at 1, unique within the section'),
-  text: z.string().describe('Verbatim clause text (trimmed)'),
-  type: ClauseTypeEnum.describe('Normalized clause category'),
-  obligation: ObligationEnum.describe(
-    "Nature of the clause from the party's perspective",
-  ),
-  startIndex: z
-    .number()
-    .int()
-    .describe('0-based character index of clause start within the section'),
-  endIndex: z
-    .number()
-    .int()
-    .describe(
-      '0-based character index of clause end within the section, inclusive',
-    ),
-  confidence: z
-    .number()
-    .min(0)
-    .max(1)
-    .describe('Model confidence that the text is correctly classified (0-1)'),
+  id: z.string(), // uuid for DB compatibility
+  clauseNumber: z.string().optional(),
+  title: z.string().optional(),
+  text: z.string(),
+  type: ClauseTypeEnum.optional(),
+  classification: z.string().optional(),
+  riskLevel: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  riskJustification: z.string().optional(),
+  entities: z.array(z.string()).optional(),
+  amounts: z.array(z.string()).optional(),
+  dates: z.array(z.string()).optional(),
+  legalReferences: z.array(z.string()).optional(),
+  obligation: ObligationEnum.optional(),
+  startIndex: z.number().int().optional(),
+  endIndex: z.number().int().optional(),
+  confidence: z.number().min(0).max(1).optional(),
 });
 
 const RiskSchema = z.object({

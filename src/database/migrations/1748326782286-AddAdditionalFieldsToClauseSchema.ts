@@ -1,11 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateContractRelatedTables1748178071120
+export class AddAdditionalFieldsToClauseSchema1748326782286
   implements MigrationInterface
 {
-  name = 'CreateContractRelatedTables1748178071120';
+  name = 'AddAdditionalFieldsToClauseSchema1748326782286';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `CREATE TABLE "standard_clause" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "type" character varying NOT NULL, "contractType" character varying NOT NULL, "text" text NOT NULL, "jurisdiction" character varying, "version" character varying, "allowedDeviations" integer, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_9f629ce483d3edfccc75ca709a4" PRIMARY KEY ("id"))`,
+    );
     await queryRunner.query(
       `CREATE TYPE "public"."risk_flags_flagtype_enum" AS ENUM('MISSING_CLAUSE', 'DEVIATION', 'COMPLIANCE_ISSUE', 'AMBIGUOUS_LANGUAGE', 'OTHER')`,
     );
@@ -22,7 +25,7 @@ export class CreateContractRelatedTables1748178071120
       `CREATE TYPE "public"."clauses_risklevel_enum" AS ENUM('LOW', 'MEDIUM', 'HIGH')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "clauses" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "clauseNumber" character varying NOT NULL, "heading" character varying, "text" text NOT NULL, "classification" character varying, "riskLevel" "public"."clauses_risklevel_enum", "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "contractId" uuid, CONSTRAINT "PK_60852d3293ff91d684631a1a905" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "clauses" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "clauseNumber" character varying NOT NULL, "title" character varying, "text" text NOT NULL, "type" character varying, "classification" character varying, "riskLevel" "public"."clauses_risklevel_enum", "riskJustification" text, "obligation" character varying, "entities" text, "amounts" text, "dates" text, "legalReferences" text, "startIndex" integer, "endIndex" integer, "confidence" double precision, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "contractId" uuid, CONSTRAINT "PK_60852d3293ff91d684631a1a905" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "qnas" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "question" text NOT NULL, "answer" text NOT NULL, "isAccepted" boolean NOT NULL DEFAULT false, "feedback" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "contractId" uuid, CONSTRAINT "PK_8615ff31cc9b1f7e99937318785" PRIMARY KEY ("id"))`,
@@ -34,19 +37,16 @@ export class CreateContractRelatedTables1748178071120
       `CREATE TABLE "human_reviews" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "status" "public"."human_reviews_status_enum" NOT NULL DEFAULT 'PENDING_REVIEW', "comments" text, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "contractId" uuid, "reviewerId" integer, CONSTRAINT "PK_89a8bb6ea6ba6c0eada06b04b55" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."contracts_status_enum" AS ENUM('DRAFT', 'IN_REVIEW', 'REVIEWED', 'APPROVED', 'REJECTED')`,
+      `CREATE TYPE "public"."contracts_status_enum" AS ENUM('pending_review', 'in_review', 'reviewed', 'approved', 'rejected')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "contracts" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "title" character varying NOT NULL, "filename" character varying NOT NULL, "contractType" character varying NOT NULL, "fullText" text, "governingLaw" character varying, "parties" character varying, "status" "public"."contracts_status_enum" NOT NULL DEFAULT 'DRAFT', "language" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_2c7b8f3a7b1acdd49497d83d0fb" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "contracts" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "title" character varying NOT NULL, "filename" character varying NOT NULL, "contractType" character varying NOT NULL, "fullText" text, "governingLaw" character varying, "parties" character varying, "status" "public"."contracts_status_enum" NOT NULL DEFAULT 'pending_review', "language" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_2c7b8f3a7b1acdd49497d83d0fb" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TYPE "public"."summaries_summarytype_enum" AS ENUM('FULL', 'RISKS', 'KEY_POINTS', 'OBLIGATIONS')`,
     );
     await queryRunner.query(
       `CREATE TABLE "summaries" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "summaryType" "public"."summaries_summarytype_enum" NOT NULL, "content" text NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "contractId" uuid, CONSTRAINT "PK_448e2a87db98ce2a6ee8946f392" PRIMARY KEY ("id"))`,
-    );
-    await queryRunner.query(
-      `CREATE TABLE "standard_clause" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "type" character varying NOT NULL, "contractType" character varying NOT NULL, "text" text NOT NULL, "jurisdiction" character varying, "version" character varying, "allowedDeviations" integer, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_9f629ce483d3edfccc75ca709a4" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "rules" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying NOT NULL, "description" character varying, "pattern" character varying, "similarityThreshold" double precision, "deviationAllowedPct" double precision, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_10fef696a7d61140361b1b23608" PRIMARY KEY ("id"))`,
@@ -69,21 +69,34 @@ export class CreateContractRelatedTables1748178071120
     );
     await queryRunner.query(`ALTER TABLE "risk_flags" DROP COLUMN "notes"`);
     await queryRunner.query(`ALTER TABLE "risk_flags" DROP COLUMN "status"`);
+    await queryRunner.query(
+      `ALTER TABLE "summaries" DROP COLUMN "summaryType"`,
+    );
+    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "content"`);
     await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "clauseNumber"`);
-    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "heading"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "title"`);
     await queryRunner.query(
       `ALTER TABLE "clauses" DROP COLUMN "classification"`,
     );
     await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "riskLevel"`);
+    await queryRunner.query(
+      `ALTER TABLE "clauses" DROP COLUMN "riskJustification"`,
+    );
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "obligation"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "entities"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "amounts"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "dates"`);
+    await queryRunner.query(
+      `ALTER TABLE "clauses" DROP COLUMN "legalReferences"`,
+    );
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "startIndex"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "endIndex"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "confidence"`);
     await queryRunner.query(`ALTER TABLE "contracts" DROP COLUMN "filename"`);
     await queryRunner.query(
       `ALTER TABLE "contracts" DROP COLUMN "contractType"`,
     );
     await queryRunner.query(`ALTER TABLE "contracts" DROP COLUMN "fullText"`);
-    await queryRunner.query(
-      `ALTER TABLE "summaries" DROP COLUMN "summaryType"`,
-    );
-    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "content"`);
     /*await queryRunner.query(
       `CREATE TYPE "public"."risk_flags_flagtype_enum" AS ENUM('MISSING_CLAUSE', 'DEVIATION', 'COMPLIANCE_ISSUE', 'AMBIGUOUS_LANGUAGE', 'OTHER')`,
     );*/
@@ -104,16 +117,31 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "clauses" ADD "clauseNumber" character varying NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "clauses" ADD "heading" character varying`,
+      `ALTER TABLE "clauses" ADD "title" character varying`,
     );
     await queryRunner.query(
       `ALTER TABLE "clauses" ADD "classification" character varying`,
     );
-    /*await queryRunner.query(
+    await queryRunner.query(
       `CREATE TYPE "public"."clauses_risklevel_enum" AS ENUM('LOW', 'MEDIUM', 'HIGH')`,
-    );*/
+    );
     await queryRunner.query(
       `ALTER TABLE "clauses" ADD "riskLevel" "public"."clauses_risklevel_enum"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "riskJustification" text`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "obligation" character varying`,
+    );
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "entities" text`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "amounts" text`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "dates" text`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "legalReferences" text`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "startIndex" integer`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "endIndex" integer`);
+    await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "confidence" double precision`,
     );
     await queryRunner.query(
       `ALTER TABLE "contracts" ADD "filename" character varying NOT NULL`,
@@ -122,9 +150,9 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "contracts" ADD "contractType" character varying NOT NULL`,
     );
     await queryRunner.query(`ALTER TABLE "contracts" ADD "fullText" text`);
-    /*await queryRunner.query(
+    await queryRunner.query(
       `CREATE TYPE "public"."summaries_summarytype_enum" AS ENUM('FULL', 'RISKS', 'KEY_POINTS', 'OBLIGATIONS')`,
-    );*/
+    );
     await queryRunner.query(
       `ALTER TABLE "summaries" ADD "summaryType" "public"."summaries_summarytype_enum" NOT NULL`,
     );
@@ -165,13 +193,21 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "risk_flags" ADD "reviewerComments" text`,
     );
     await queryRunner.query(
+      `CREATE TYPE "public"."summaries_type_enum" AS ENUM('FULL', 'CLAUSE', 'RISK', 'COMPLIANCE')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "summaries" ADD "type" "public"."summaries_type_enum" NOT NULL`,
+    );
+    await queryRunner.query(`ALTER TABLE "summaries" ADD "text" text NOT NULL`);
+    await queryRunner.query(
+      `ALTER TABLE "summaries" ADD "isReviewed" boolean NOT NULL DEFAULT false`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "summaries" ADD "reviewerComments" text`,
+    );
+    await queryRunner.query(`ALTER TABLE "summaries" ADD "clauseId" uuid`);
+    await queryRunner.query(
       `ALTER TABLE "clauses" ADD "number" character varying NOT NULL`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."clauses_type_enum" AS ENUM('TERMINATION', 'CONFIDENTIALITY', 'INDEMNIFICATION', 'LIABILITY', 'INTELLECTUAL_PROPERTY', 'GOVERNING_LAW', 'DISPUTE_RESOLUTION', 'FORCE_MAJEURE', 'ASSIGNMENT', 'NOTICES', 'SEVERABILITY', 'ENTIRE_AGREEMENT', 'AMENDMENT', 'WAIVER', 'COUNTERPARTS', 'HEADINGS', 'DEFINITIONS', 'OTHER')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "clauses" ADD "type" "public"."clauses_type_enum"`,
     );
     await queryRunner.query(
       `ALTER TABLE "clauses" ADD "isReviewed" boolean NOT NULL DEFAULT false`,
@@ -200,20 +236,6 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "contracts" ADD "reviewCompletionDate" TIMESTAMP`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."summaries_type_enum" AS ENUM('FULL', 'CLAUSE', 'RISK', 'COMPLIANCE')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "summaries" ADD "type" "public"."summaries_type_enum" NOT NULL`,
-    );
-    await queryRunner.query(`ALTER TABLE "summaries" ADD "text" text NOT NULL`);
-    await queryRunner.query(
-      `ALTER TABLE "summaries" ADD "isReviewed" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "summaries" ADD "reviewerComments" text`,
-    );
-    await queryRunner.query(`ALTER TABLE "summaries" ADD "clauseId" uuid`);
-    await queryRunner.query(
       `ALTER TABLE "standard_clauses" ALTER COLUMN "jurisdiction" SET NOT NULL`,
     );
     await queryRunner.query(
@@ -221,6 +243,13 @@ export class CreateContractRelatedTables1748178071120
     );
     await queryRunner.query(
       `ALTER TABLE "risk_flags" ALTER COLUMN "severity" DROP DEFAULT`,
+    );
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "type"`);
+    await queryRunner.query(
+      `CREATE TYPE "public"."clauses_type_enum" AS ENUM('TERMINATION', 'CONFIDENTIALITY', 'INDEMNIFICATION', 'LIABILITY', 'INTELLECTUAL_PROPERTY', 'GOVERNING_LAW', 'DISPUTE_RESOLUTION', 'FORCE_MAJEURE', 'ASSIGNMENT', 'NOTICES', 'SEVERABILITY', 'ENTIRE_AGREEMENT', 'AMENDMENT', 'WAIVER', 'COUNTERPARTS', 'HEADINGS', 'DEFINITIONS', 'OTHER')`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "type" "public"."clauses_type_enum"`,
     );
     await queryRunner.query(
       `ALTER TYPE "public"."human_reviews_status_enum" RENAME TO "human_reviews_status_enum_old"`,
@@ -244,24 +273,8 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "human_reviews" DROP COLUMN "reviewerId"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "human_reviews" ADD "reviewerId" integer`,
+      `ALTER TABLE "human_reviews" ADD "reviewerId" character varying`,
     );
-    await queryRunner.query(
-      `ALTER TYPE "public"."contracts_status_enum" RENAME TO "contracts_status_enum_old"`,
-    );
-    await queryRunner.query(
-      `CREATE TYPE "public"."contracts_status_enum" AS ENUM('pending_review', 'in_review', 'reviewed', 'approved', 'rejected')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "contracts" ALTER COLUMN "status" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "contracts" ALTER COLUMN "status" TYPE "public"."contracts_status_enum" USING "status"::"text"::"public"."contracts_status_enum"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "contracts" ALTER COLUMN "status" SET DEFAULT 'pending_review'`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."contracts_status_enum_old"`);
     await queryRunner.query(`ALTER TABLE "contracts" DROP COLUMN "parties"`);
     await queryRunner.query(`ALTER TABLE "contracts" ADD "parties" jsonb`);
     await queryRunner.query(
@@ -289,25 +302,25 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "standard_clauses" ADD CONSTRAINT "FK_f116c91daf10d2007df29af4e66" FOREIGN KEY ("previousVersionId") REFERENCES "standard_clauses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
+      `ALTER TABLE "summaries" ADD CONSTRAINT "FK_694a2bf0f1a2d6c08891330f742" FOREIGN KEY ("clauseId") REFERENCES "clauses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
       `ALTER TABLE "qna" ADD CONSTRAINT "FK_d8182bcbc58a3e9ec6c471c4d12" FOREIGN KEY ("contractId") REFERENCES "contracts"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
       `ALTER TABLE "qna" ADD CONSTRAINT "FK_22103b616de64c6deca212a4629" FOREIGN KEY ("clauseId") REFERENCES "clauses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "summaries" ADD CONSTRAINT "FK_694a2bf0f1a2d6c08891330f742" FOREIGN KEY ("clauseId") REFERENCES "clauses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "summaries" DROP CONSTRAINT "FK_694a2bf0f1a2d6c08891330f742"`,
-    );
     await queryRunner.query(
       `ALTER TABLE "qna" DROP CONSTRAINT "FK_22103b616de64c6deca212a4629"`,
     );
     await queryRunner.query(
       `ALTER TABLE "qna" DROP CONSTRAINT "FK_d8182bcbc58a3e9ec6c471c4d12"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "summaries" DROP CONSTRAINT "FK_694a2bf0f1a2d6c08891330f742"`,
     );
     await queryRunner.query(
       `ALTER TABLE "standard_clauses" DROP CONSTRAINT "FK_f116c91daf10d2007df29af4e66"`,
@@ -338,22 +351,6 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "contracts" ADD "parties" character varying`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."contracts_status_enum_old" AS ENUM('DRAFT', 'IN_REVIEW', 'REVIEWED', 'APPROVED', 'REJECTED')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "contracts" ALTER COLUMN "status" DROP DEFAULT`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "contracts" ALTER COLUMN "status" TYPE "public"."contracts_status_enum_old" USING "status"::"text"::"public"."contracts_status_enum_old"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "contracts" ALTER COLUMN "status" SET DEFAULT 'DRAFT'`,
-    );
-    await queryRunner.query(`DROP TYPE "public"."contracts_status_enum"`);
-    await queryRunner.query(
-      `ALTER TYPE "public"."contracts_status_enum_old" RENAME TO "contracts_status_enum"`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "human_reviews" DROP COLUMN "reviewerId"`,
     );
     await queryRunner.query(
@@ -375,6 +372,11 @@ export class CreateContractRelatedTables1748178071120
     await queryRunner.query(
       `ALTER TYPE "public"."human_reviews_status_enum_old" RENAME TO "human_reviews_status_enum"`,
     );
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "type"`);
+    await queryRunner.query(`DROP TYPE "public"."clauses_type_enum"`);
+    await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "type" character varying`,
+    );
     await queryRunner.query(
       `ALTER TABLE "risk_flags" ALTER COLUMN "severity" SET DEFAULT 'MEDIUM'`,
     );
@@ -384,14 +386,6 @@ export class CreateContractRelatedTables1748178071120
     await queryRunner.query(
       `ALTER TABLE "standard_clauses" ALTER COLUMN "jurisdiction" DROP NOT NULL`,
     );
-    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "clauseId"`);
-    await queryRunner.query(
-      `ALTER TABLE "summaries" DROP COLUMN "reviewerComments"`,
-    );
-    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "isReviewed"`);
-    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "text"`);
-    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "type"`);
-    await queryRunner.query(`DROP TYPE "public"."summaries_type_enum"`);
     await queryRunner.query(
       `ALTER TABLE "contracts" DROP COLUMN "reviewCompletionDate"`,
     );
@@ -412,9 +406,15 @@ export class CreateContractRelatedTables1748178071120
     );
     await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "isApproved"`);
     await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "isReviewed"`);
-    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "type"`);
-    await queryRunner.query(`DROP TYPE "public"."clauses_type_enum"`);
     await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "number"`);
+    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "clauseId"`);
+    await queryRunner.query(
+      `ALTER TABLE "summaries" DROP COLUMN "reviewerComments"`,
+    );
+    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "isReviewed"`);
+    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "text"`);
+    await queryRunner.query(`ALTER TABLE "summaries" DROP COLUMN "type"`);
+    await queryRunner.query(`DROP TYPE "public"."summaries_type_enum"`);
     await queryRunner.query(
       `ALTER TABLE "risk_flags" DROP COLUMN "reviewerComments"`,
     );
@@ -454,12 +454,25 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "contracts" DROP COLUMN "contractType"`,
     );
     await queryRunner.query(`ALTER TABLE "contracts" DROP COLUMN "filename"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "confidence"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "endIndex"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "startIndex"`);
+    await queryRunner.query(
+      `ALTER TABLE "clauses" DROP COLUMN "legalReferences"`,
+    );
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "dates"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "amounts"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "entities"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "obligation"`);
+    await queryRunner.query(
+      `ALTER TABLE "clauses" DROP COLUMN "riskJustification"`,
+    );
     await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "riskLevel"`);
     await queryRunner.query(`DROP TYPE "public"."clauses_risklevel_enum"`);
     await queryRunner.query(
       `ALTER TABLE "clauses" DROP COLUMN "classification"`,
     );
-    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "heading"`);
+    await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "title"`);
     await queryRunner.query(`ALTER TABLE "clauses" DROP COLUMN "clauseNumber"`);
     await queryRunner.query(`ALTER TABLE "risk_flags" DROP COLUMN "status"`);
     await queryRunner.query(`DROP TYPE "public"."risk_flags_status_enum"`);
@@ -469,12 +482,6 @@ export class CreateContractRelatedTables1748178071120
     );
     await queryRunner.query(`ALTER TABLE "risk_flags" DROP COLUMN "flagType"`);
     await queryRunner.query(`DROP TYPE "public"."risk_flags_flagtype_enum"`);
-    await queryRunner.query(
-      `ALTER TABLE "summaries" ADD "content" text NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "summaries" ADD "summaryType" "public"."summaries_summarytype_enum" NOT NULL`,
-    );
     await queryRunner.query(`ALTER TABLE "contracts" ADD "fullText" text`);
     await queryRunner.query(
       `ALTER TABLE "contracts" ADD "contractType" character varying NOT NULL`,
@@ -483,16 +490,37 @@ export class CreateContractRelatedTables1748178071120
       `ALTER TABLE "contracts" ADD "filename" character varying NOT NULL`,
     );
     await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "confidence" double precision`,
+    );
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "endIndex" integer`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "startIndex" integer`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "legalReferences" text`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "dates" text`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "amounts" text`);
+    await queryRunner.query(`ALTER TABLE "clauses" ADD "entities" text`);
+    await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "obligation" character varying`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "clauses" ADD "riskJustification" text`,
+    );
+    await queryRunner.query(
       `ALTER TABLE "clauses" ADD "riskLevel" "public"."clauses_risklevel_enum"`,
     );
     await queryRunner.query(
       `ALTER TABLE "clauses" ADD "classification" character varying`,
     );
     await queryRunner.query(
-      `ALTER TABLE "clauses" ADD "heading" character varying`,
+      `ALTER TABLE "clauses" ADD "title" character varying`,
     );
     await queryRunner.query(
       `ALTER TABLE "clauses" ADD "clauseNumber" character varying NOT NULL`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "summaries" ADD "content" text NOT NULL`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "summaries" ADD "summaryType" "public"."summaries_summarytype_enum" NOT NULL`,
     );
     await queryRunner.query(
       `ALTER TABLE "risk_flags" ADD "status" "public"."risk_flags_status_enum" NOT NULL DEFAULT 'open'`,
@@ -513,7 +541,6 @@ export class CreateContractRelatedTables1748178071120
     await queryRunner.query(`DROP TABLE "qna"`);
     await queryRunner.query(`DROP TABLE "standard_clauses"`);
     await queryRunner.query(`DROP TABLE "rules"`);
-    await queryRunner.query(`DROP TABLE "standard_clause"`);
     await queryRunner.query(`DROP TABLE "summaries"`);
     await queryRunner.query(`DROP TYPE "public"."summaries_summarytype_enum"`);
     await queryRunner.query(`DROP TABLE "contracts"`);
@@ -527,5 +554,6 @@ export class CreateContractRelatedTables1748178071120
     await queryRunner.query(`DROP TYPE "public"."risk_flags_status_enum"`);
     await queryRunner.query(`DROP TYPE "public"."risk_flags_severity_enum"`);
     await queryRunner.query(`DROP TYPE "public"."risk_flags_flagtype_enum"`);
+    await queryRunner.query(`DROP TABLE "standard_clause"`);
   }
 }
