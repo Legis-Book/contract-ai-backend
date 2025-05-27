@@ -41,3 +41,4 @@ lerna-debug.log*
 .codegpt
 /volumes/*
 eng.trainingdata
+/generated/prisma

@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ContractStatus {
+  pending_review
+  in_review
+  reviewed
+  approved
+  rejected
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RiskFlagType {
+  MISSING_CLAUSE
+  DEVIATION
+  COMPLIANCE_ISSUE
+  AMBIGUOUS_LANGUAGE
+  OTHER
+}
+
+enum RiskFlagSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RiskFlagStatus {
+  open
+  resolved
+  ignored
+}
+
+enum HumanReviewStatus {
+  PENDING_REVIEW
+  REVIEWED_CHANGES
+  APPROVED
+  REJECTED
+}
+
+enum SummaryType {
+  FULL
+  RISKS
+  KEY_POINTS
+  OBLIGATIONS
+}
+
+model Contract {
+  id           String         @id @default(uuid())
+  title        String
+  filename     String
+  contractType String
+  fullText     String?
+  governingLaw String?
+  parties      String?
+  status       ContractStatus @default(pending_review)
+  language     String?
+  clauses      Clause[]
+  riskFlags    RiskFlag[]
+  summaries    Summary[]
+  qnas         QnA[]
+  reviews      HumanReview[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Clause {
+  id                String         @id @default(uuid())
+  clauseNumber      String
+  title             String?
+  text              String
+  type              String?
+  classification    String?
+  riskLevel         RiskLevel?
+  riskJustification String?
+  obligation        String?
+  entities          String[]
+  amounts           String[]
+  dates             String[]
+  legalReferences   String[]
+  startIndex        Int?
+  endIndex          Int?
+  confidence        Float?
+  contractId        String
+  contract          Contract       @relation(fields: [contractId], references: [id])
+  riskFlags         RiskFlag[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model RiskFlag {
+  id             String         @id @default(uuid())
+  flagType       RiskFlagType
+  description    String
+  severity       RiskFlagSeverity @default(MEDIUM)
+  suggestedText  String?
+  notes          String?
+  status         RiskFlagStatus  @default(open)
+  isResolved     Boolean         @default(false)
+  contractId     String
+  contract       Contract        @relation(fields: [contractId], references: [id])
+  clauseId       String?
+  clause         Clause?         @relation(fields: [clauseId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model HumanReview {
+  id         String            @id @default(uuid())
+  status     HumanReviewStatus @default(PENDING_REVIEW)
+  comments   String?
+  contractId String
+  contract   Contract          @relation(fields: [contractId], references: [id])
+  reviewerId Int
+  reviewer   UserEntity        @relation(fields: [reviewerId], references: [id])
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+}
+
+model QnA {
+  id         String    @id @default(uuid())
+  question   String
+  answer     String
+  isAccepted Boolean   @default(false)
+  feedback   String?
+  contractId String
+  contract   Contract  @relation(fields: [contractId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Rule {
+  id                   String   @id @default(uuid())
+  name                 String
+  description          String?
+  pattern              String?
+  similarityThreshold  Float?
+  deviationAllowedPct  Float?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Summary {
+  id          String      @id @default(uuid())
+  summaryType SummaryType
+  content     String
+  contractId  String
+  contract    Contract    @relation(fields: [contractId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model StandardClause {
+  id                Int      @id @default(autoincrement())
+  name              String
+  type              String
+  contractType      String
+  text              String
+  jurisdiction      String?
+  version           String?
+  allowedDeviations Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model UserEntity {
+  id         Int        @id @default(autoincrement())
+  email      String?    @unique
+  password   String?
+  provider   String     @default("email")
+  socialId   String?
+  firstName  String?
+  lastName   String?
+  photoId    String?
+  photo      FileEntity? @relation(fields: [photoId], references: [id])
+  roleId     Int?
+  role       RoleEntity? @relation(fields: [roleId], references: [id])
+  reviews    HumanReview[]
+  statusId   Int?
+  status     StatusEntity? @relation(fields: [statusId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+}
+
+model RoleEntity {
+  id   Int    @id
+  name String?
+  users UserEntity[]
+}
+
+model StatusEntity {
+  id    Int    @id
+  name  String?
+  users UserEntity[]
+}
+
+model FileEntity {
+  id   String  @id @default(uuid())
+  path String
+  users UserEntity[]
+}
