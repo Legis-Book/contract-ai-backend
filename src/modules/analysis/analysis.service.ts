@@ -331,7 +331,7 @@ export class AnalysisService {
     const contract = await this.findContract(contractId);
 
     // Update contract status
-    contract.status = ContractStatus.IN_REVIEW;
+    contract.status = 'IN_REVIEW';
     await this.prisma.contract.update({
       where: { id: contract.id },
       data: { status: contract.status },

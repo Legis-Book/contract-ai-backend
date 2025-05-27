@@ -26,7 +26,7 @@ export class SessionSchemaClass extends EntityDocumentHelper {
   updatedAt: Date;
 
   @Prop()
-  deletedAt: Date;
+  deletedAt: Date | null;
 }
 
 export const SessionSchema = SchemaFactory.createForClass(SessionSchemaClass);

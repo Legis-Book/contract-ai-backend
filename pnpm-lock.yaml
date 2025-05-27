@@ -19,7 +19,7 @@ importers:
         version: 0.24.0
       '@langchain/community':
         specifier: ^0.3.43
-        version: 0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.758.0)(@aws-sdk/credential-provider-node@3.758.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(zod@3.25.7))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(@smithy/util-utf8@2.3.0)(@zilliz/milvus2-sdk-node@2.5.9)(axios@1.9.0)(fast-xml-parser@4.4.1)(google-auth-library@9.15.1)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(neo4j-driver@5.28.1)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(pg@8.14.0)(playwright@1.52.0)(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
+        version: 0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.758.0)(@aws-sdk/credential-provider-node@3.758.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(zod@3.25.7))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(@smithy/util-utf8@2.3.0)(@zilliz/milvus2-sdk-node@2.5.9)(axios@1.9.0)(fast-xml-parser@4.4.1)(google-auth-library@9.15.1)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(mongodb@6.14.2(socks@2.8.4))(neo4j-driver@5.28.1)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(pg@8.14.0)(playwright@1.52.0)(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
       '@langchain/core':
         specifier: ^0.3.43
         version: 0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7))
@@ -63,8 +63,8 @@ importers:
         specifier: 11.0.7
         version: 11.0.7(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
       '@nestjs/typeorm':
-        specifier: 11.0.0
-        version: 11.0.0(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))
+        specifier: ^11.0.0
+        version: 11.0.0(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))
       '@nestjs/websockets':
         specifier: ^11.1.1
         version: 11.1.1(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)(@nestjs/platform-socket.io@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -109,13 +109,13 @@ importers:
         version: 4.7.8
       langchain:
         specifier: ^0.3.19
-        version: 0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
+        version: 0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
       langfuse:
         specifier: ^3.37.2
         version: 3.37.2
       langfuse-langchain:
         specifier: ^3.37.2
-        version: 3.37.2(langchain@0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2))
+        version: 3.37.2(langchain@0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2))
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -183,8 +183,8 @@ importers:
         specifier: 5.0.1
         version: 5.0.1(express@5.0.1)
       typeorm:
-        specifier: 0.3.21
-        version: 0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
+        specifier: ^0.3.24
+        version: 0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
       voyageai:
         specifier: ^0.0.4
         version: 0.0.4
@@ -3447,6 +3447,14 @@ packages:
       babel-plugin-macros:
         optional: true
 
+  dedent@1.6.0:
+    resolution: {integrity: sha512-F1Z+5UCFpmQUzJa11agbyPVMbpgT/qA3/SKyJ1jyBgm7dUcUEa8v9JwDkerSQXfakBwFljIxhOJqGkjUwZ9FSA==}
+    peerDependencies:
+      babel-plugin-macros: ^3.1.0
+    peerDependenciesMeta:
+      babel-plugin-macros:
+        optional: true
+
   deep-extend@0.6.0:
     resolution: {integrity: sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==}
     engines: {node: '>=4.0.0'}
@@ -6460,17 +6468,17 @@ packages:
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
 
-  typeorm@0.3.21:
-    resolution: {integrity: sha512-lh4rUWl1liZGjyPTWpwcK8RNI5x4ekln+/JJOox1wCd7xbucYDOXWD+1cSzTN3L0wbTGxxOtloM5JlxbOxEufA==}
+  typeorm@0.3.24:
+    resolution: {integrity: sha512-4IrHG7A0tY8l5gEGXfW56VOMfUVWEkWlH/h5wmcyZ+V8oCiLj7iTPp0lEjMEZVrxEkGSdP9ErgTKHKXQApl/oA==}
     engines: {node: '>=16.13.0'}
     hasBin: true
     peerDependencies:
-      '@google-cloud/spanner': ^5.18.0
+      '@google-cloud/spanner': ^5.18.0 || ^6.0.0 || ^7.0.0
       '@sap/hana-client': ^2.12.25
       better-sqlite3: ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
       hdb-pool: ^0.1.6
       ioredis: ^5.0.4
-      mongodb: ^5.8.0
+      mongodb: ^5.8.0 || ^6.0.0
       mssql: ^9.1.1 || ^10.0.1 || ^11.0.1
       mysql2: ^2.2.5 || ^3.0.1
       oracledb: ^6.3.0
@@ -6482,7 +6490,7 @@ packages:
       sql.js: ^1.4.0
       sqlite3: ^5.0.3
       ts-node: ^10.7.0
-      typeorm-aurora-data-api-driver: ^2.0.0
+      typeorm-aurora-data-api-driver: ^2.0.0 || ^3.0.0
     peerDependenciesMeta:
       '@google-cloud/spanner':
         optional: true
@@ -8199,7 +8207,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@langchain/community@0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.758.0)(@aws-sdk/credential-provider-node@3.758.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(zod@3.25.7))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(@smithy/util-utf8@2.3.0)(@zilliz/milvus2-sdk-node@2.5.9)(axios@1.9.0)(fast-xml-parser@4.4.1)(google-auth-library@9.15.1)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(neo4j-driver@5.28.1)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(pg@8.14.0)(playwright@1.52.0)(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)':
+  '@langchain/community@0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.758.0)(@aws-sdk/credential-provider-node@3.758.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(zod@3.25.7))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(@smithy/util-utf8@2.3.0)(@zilliz/milvus2-sdk-node@2.5.9)(axios@1.9.0)(fast-xml-parser@4.4.1)(google-auth-library@9.15.1)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(mongodb@6.14.2(socks@2.8.4))(neo4j-driver@5.28.1)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(pg@8.14.0)(playwright@1.52.0)(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(zod@3.25.7)
       '@ibm-cloud/watsonx-ai': 1.6.5
@@ -8210,7 +8218,7 @@ snapshots:
       flat: 5.0.2
       ibm-cloud-sdk-core: 5.3.2
       js-yaml: 4.1.0
-      langchain: 0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
+      langchain: 0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
       langsmith: 0.3.29(openai@4.89.1(ws@8.18.2)(zod@3.25.7))
       openai: 4.89.1(ws@8.18.2)(zod@3.25.7)
       uuid: 10.0.0
@@ -8228,10 +8236,11 @@ snapshots:
       ignore: 5.3.2
       jsonwebtoken: 9.0.2
       lodash: 4.17.21
+      mongodb: 6.14.2(socks@2.8.4)
       neo4j-driver: 5.28.1
       pg: 8.14.0
       playwright: 1.52.0
-      typeorm: 0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
+      typeorm: 0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
       ws: 8.18.2
     transitivePeerDependencies:
       - '@langchain/anthropic'
@@ -8565,13 +8574,13 @@ snapshots:
     optionalDependencies:
       '@nestjs/platform-express': 11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)
 
-  '@nestjs/typeorm@11.0.0(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))':
+  '@nestjs/typeorm@11.0.0(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))':
     dependencies:
       '@nestjs/common': 11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.0.12)(@nestjs/websockets@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       reflect-metadata: 0.2.2
       rxjs: 7.8.2
-      typeorm: 0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
+      typeorm: 0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
 
   '@nestjs/websockets@11.1.1(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.0.12)(@nestjs/platform-socket.io@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
     dependencies:
@@ -10471,6 +10480,8 @@ snapshots:
 
   dedent@1.5.3: {}
 
+  dedent@1.6.0: {}
+
   deep-extend@0.6.0: {}
 
   deep-is@0.1.4: {}
@@ -12069,7 +12080,7 @@ snapshots:
 
   ky@1.7.5: {}
 
-  langchain@0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2):
+  langchain@0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2):
     dependencies:
       '@langchain/core': 0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7))
       '@langchain/openai': 0.4.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(ws@8.18.2)
@@ -12088,7 +12099,7 @@ snapshots:
       '@langchain/google-genai': 0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7)
       axios: 1.9.0(debug@4.4.0)
       handlebars: 4.7.8
-      typeorm: 0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
+      typeorm: 0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2))
     transitivePeerDependencies:
       - encoding
       - openai
@@ -12098,9 +12109,9 @@ snapshots:
     dependencies:
       mustache: 4.2.0
 
-  langfuse-langchain@3.37.2(langchain@0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)):
+  langfuse-langchain@3.37.2(langchain@0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)):
     dependencies:
-      langchain: 0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
+      langchain: 0.3.19(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(@langchain/google-genai@0.2.9(@langchain/core@0.3.43(openai@4.89.1(ws@8.18.2)(zod@3.25.7)))(zod@3.25.7))(axios@1.9.0)(handlebars@4.7.8)(openai@4.89.1(ws@8.18.2)(zod@3.25.7))(typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)))(ws@8.18.2)
       langfuse: 3.37.2
       langfuse-core: 3.37.2
 
@@ -13773,7 +13784,7 @@ snapshots:
 
   typedarray@0.0.6: {}
 
-  typeorm@0.3.21(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)):
+  typeorm@0.3.24(mongodb@6.14.2(socks@2.8.4))(pg@8.14.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 3.17.0
@@ -13781,6 +13792,7 @@ snapshots:
       buffer: 6.0.3
       dayjs: 1.11.13
       debug: 4.4.0
+      dedent: 1.6.0
       dotenv: 16.4.7
       glob: 10.4.5
       reflect-metadata: 0.2.2
@@ -13790,9 +13802,11 @@ snapshots:
       uuid: 11.1.0
       yargs: 17.7.2
     optionalDependencies:
+      mongodb: 6.14.2(socks@2.8.4)
       pg: 8.14.0
       ts-node: 10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.8.2)
     transitivePeerDependencies:
+      - babel-plugin-macros
       - supports-color
 
   typescript@5.7.3: {}

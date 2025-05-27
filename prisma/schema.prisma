@@ -14,136 +14,222 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum ContractStatus {
-  pending_review
-  in_review
-  reviewed
-  approved
-  rejected
-}
-
-enum RiskLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum RiskFlagType {
-  MISSING_CLAUSE
-  DEVIATION
-  COMPLIANCE_ISSUE
-  AMBIGUOUS_LANGUAGE
+enum ContractType {
+  NDA
+  EMPLOYMENT
+  VENDOR
+  SAAS
+  SALES
   OTHER
 }
 
-enum RiskFlagSeverity {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum RiskFlagStatus {
-  open
-  resolved
-  ignored
-}
-
-enum HumanReviewStatus {
+enum ContractStatus {
   PENDING_REVIEW
-  REVIEWED_CHANGES
+  IN_REVIEW
+  REVIEWED
   APPROVED
   REJECTED
 }
 
+enum ClauseType {
+  TERMINATION
+  CONFIDENTIALITY
+  INDEMNIFICATION
+  LIABILITY
+  INTELLECTUAL_PROPERTY
+  GOVERNING_LAW
+  DISPUTE_RESOLUTION
+  FORCE_MAJEURE
+  ASSIGNMENT
+  NOTICES
+  SEVERABILITY
+  ENTIRE_AGREEMENT
+  AMENDMENT
+  WAIVER
+  COUNTERPARTS
+  HEADINGS
+  DEFINITIONS
+  OTHER
+}
+
+enum RiskType {
+  MISSING_CLAUSE
+  DEVIATION
+  COMPLIANCE_ISSUE
+  AMBIGUOUS_LANGUAGE
+  UNFAIR_TERMS
+  DATA_PROTECTION
+  INTELLECTUAL_PROPERTY
+  LIABILITY
+  TERMINATION
+  OTHER
+}
+
+enum RiskSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 enum SummaryType {
   FULL
-  RISKS
-  KEY_POINTS
-  OBLIGATIONS
+  CLAUSE
+  RISK
+  COMPLIANCE
+}
+
+enum ReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id         Int          @id @default(autoincrement())
+  email      String?      @unique
+  password   String?
+  provider   String       @default("email")
+  socialId   String?
+  firstName  String?
+  lastName   String?
+  photoId    String?
+  photo      File?        @relation(fields: [photoId], references: [id])
+  roleId     Int?
+  role       Role?        @relation(fields: [roleId], references: [id])
+  statusId   Int?
+  status     Status?      @relation(fields: [statusId], references: [id])
+  reviews    HumanReview[] @relation("ReviewerReviews")
+  sessions   Session[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  deletedAt  DateTime?
+}
+
+model File {
+  id   String  @id @default(uuid())
+  path String
+  users User[]
+}
+
+model Role {
+  id    Int    @id
+  name  String?
+  users User[]
+}
+
+model Status {
+  id    Int    @id
+  name  String?
+  users User[]
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  hash      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model Contract {
-  id           String         @id @default(uuid())
-  title        String
-  filename     String
-  contractType String
-  fullText     String?
-  governingLaw String?
-  parties      String?
-  status       ContractStatus @default(pending_review)
-  language     String?
-  clauses      Clause[]
-  riskFlags    RiskFlag[]
-  summaries    Summary[]
-  qnas         QnA[]
-  reviews      HumanReview[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                  String        @id @default(uuid())
+  title               String
+  type                ContractType  @default(OTHER)
+  status              ContractStatus @default(PENDING_REVIEW)
+  originalText        String?
+  governingLaw        String?
+  parties             Json?
+  uploadDate          DateTime?
+  reviewCompletionDate DateTime?
+  language            String?
+  clauses             Clause[]
+  riskFlags           RiskFlag[]
+  summaries           Summary[]
+  qnaInteractions     QnA[]
+  reviews             HumanReview[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 }
 
 model Clause {
-  id                String         @id @default(uuid())
-  clauseNumber      String
-  title             String?
-  text              String
-  type              String?
-  classification    String?
-  riskLevel         RiskLevel?
-  riskJustification String?
-  obligation        String?
-  entities          String[]
-  amounts           String[]
-  dates             String[]
-  legalReferences   String[]
-  startIndex        Int?
-  endIndex          Int?
-  confidence        Float?
-  contractId        String
-  contract          Contract       @relation(fields: [contractId], references: [id])
-  riskFlags         RiskFlag[]
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  id              String      @id @default(uuid())
+  number          String
+  text            String
+  type            ClauseType?
+  isReviewed      Boolean     @default(false)
+  isApproved      Boolean     @default(false)
+  suggestedText   String?
+  contractId      String
+  contract        Contract    @relation(fields: [contractId], references: [id])
+  riskFlags       RiskFlag[]
+  summaries       Summary[]
+  qnaInteractions QnA[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model RiskFlag {
-  id             String         @id @default(uuid())
-  flagType       RiskFlagType
-  description    String
-  severity       RiskFlagSeverity @default(MEDIUM)
-  suggestedText  String?
-  notes          String?
-  status         RiskFlagStatus  @default(open)
-  isResolved     Boolean         @default(false)
-  contractId     String
-  contract       Contract        @relation(fields: [contractId], references: [id])
-  clauseId       String?
-  clause         Clause?         @relation(fields: [clauseId], references: [id])
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                  String      @id @default(uuid())
+  type                RiskType
+  severity            RiskSeverity
+  description         String
+  suggestedResolution String?
+  isReviewed          Boolean     @default(false)
+  isResolved          Boolean     @default(false)
+  reviewerComments    String?
+  contractId          String
+  contract            Contract    @relation(fields: [contractId], references: [id])
+  clauseId            String?
+  clause              Clause?     @relation(fields: [clauseId], references: [id])
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 }
 
-model HumanReview {
-  id         String            @id @default(uuid())
-  status     HumanReviewStatus @default(PENDING_REVIEW)
-  comments   String?
-  contractId String
-  contract   Contract          @relation(fields: [contractId], references: [id])
-  reviewerId Int
-  reviewer   UserEntity        @relation(fields: [reviewerId], references: [id])
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+model Summary {
+  id               String      @id @default(uuid())
+  type             SummaryType
+  text             String
+  isReviewed       Boolean     @default(false)
+  reviewerComments String?
+  contractId       String
+  contract         Contract    @relation(fields: [contractId], references: [id])
+  clauseId         String?
+  clause           Clause?     @relation(fields: [clauseId], references: [id])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 }
 
 model QnA {
-  id         String    @id @default(uuid())
-  question   String
-  answer     String
-  isAccepted Boolean   @default(false)
-  feedback   String?
-  contractId String
-  contract   Contract  @relation(fields: [contractId], references: [id])
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id              String      @id @default(uuid())
+  question        String
+  answer          String
+  isAccepted      Boolean     @default(false)
+  isFlagged       Boolean     @default(false)
+  feedback        String?
+  contractId      String
+  contract        Contract    @relation(fields: [contractId], references: [id])
+  clauseId        String?
+  clause          Clause?     @relation(fields: [clauseId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model HumanReview {
+  id             String      @id @default(uuid())
+  status         ReviewStatus @default(PENDING)
+  comments       String?
+  startDate      DateTime?
+  completionDate DateTime?
+  reviewerId     Int?
+  reviewer       User?       @relation("ReviewerReviews", fields: [reviewerId], references: [id])
+  contractId     String
+  contract       Contract    @relation(fields: [contractId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 model Rule {
@@ -157,16 +243,6 @@ model Rule {
   updatedAt            DateTime @updatedAt
 }
 
-model Summary {
-  id          String      @id @default(uuid())
-  summaryType SummaryType
-  content     String
-  contractId  String
-  contract    Contract    @relation(fields: [contractId], references: [id])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-}
-
 model StandardClause {
   id                Int      @id @default(autoincrement())
   name              String
@@ -178,42 +254,7 @@ model StandardClause {
   allowedDeviations Int?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-}
-
-model UserEntity {
-  id         Int        @id @default(autoincrement())
-  email      String?    @unique
-  password   String?
-  provider   String     @default("email")
-  socialId   String?
-  firstName  String?
-  lastName   String?
-  photoId    String?
-  photo      FileEntity? @relation(fields: [photoId], references: [id])
-  roleId     Int?
-  role       RoleEntity? @relation(fields: [roleId], references: [id])
-  reviews    HumanReview[]
-  statusId   Int?
-  status     StatusEntity? @relation(fields: [statusId], references: [id])
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  deletedAt  DateTime?
-}
-
-model RoleEntity {
-  id   Int    @id
-  name String?
-  users UserEntity[]
-}
-
-model StatusEntity {
-  id    Int    @id
-  name  String?
-  users UserEntity[]
-}
-
-model FileEntity {
-  id   String  @id @default(uuid())
-  path String
-  users UserEntity[]
+  previousVersionId Int?
+  previousVersion   StandardClause? @relation("PreviousVersion", fields: [previousVersionId], references: [id])
+  nextVersions      StandardClause[] @relation("PreviousVersion")
 }

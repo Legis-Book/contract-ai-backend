@@ -1,15 +1,13 @@
 import { instanceToPlain } from 'class-transformer';
-import { AfterLoad, BaseEntity } from 'typeorm';
 
-export class EntityRelationalHelper extends BaseEntity {
-  __entity?: string;
-
-  @AfterLoad()
-  setEntityName() {
-    this.__entity = this.constructor.name;
-  }
-
-  toJSON() {
-    return instanceToPlain(this);
-  }
+// Helper function to add __entity and toJSON to a Prisma model instance
+export function addEntityHelpers<T extends object>(
+  model: T,
+): T & { __entity: string; toJSON: () => object } {
+  return Object.assign(model, {
+    __entity: model.constructor.name,
+    toJSON() {
+      return instanceToPlain(this);
+    },
+  });
 }

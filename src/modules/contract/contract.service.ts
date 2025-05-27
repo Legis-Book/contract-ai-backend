@@ -3,7 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import {
   Contract,
   Summary,
@@ -28,10 +28,10 @@ export interface ExportAnalysisResult {
 
 @Injectable()
 export class ContractService {
-  private prisma: PrismaClient;
-  constructor(private aiService: AiService) {
-    this.prisma = new PrismaClient();
-  }
+  constructor(
+    private aiService: AiService,
+    private prisma: PrismaService,
+  ) {}
 
   async create(createContractDto: CreateContractDto): Promise<Contract> {
     return await this.prisma.contract.create({ data: createContractDto });
@@ -135,14 +135,14 @@ export class ContractService {
   async analyzeContract(id: string): Promise<Contract> {
     const contract = await this.findOne(id);
 
-    if (!contract.fullText) {
+    if (!contract.originalText) {
       throw new BadRequestException('Contract text is required for analysis');
     }
 
     // Analyze contract using AI
     const analysis = await this.aiService.analyzeContract(
-      contract.fullText,
-      contract.contractType,
+      contract.originalText,
+      contract.type,
     );
 
     // Transform clauses data to match schema
@@ -297,13 +297,13 @@ export class ContractService {
   async askQuestion(id: string, question: string): Promise<QnA> {
     const contract = await this.findOne(id);
 
-    if (!contract.fullText) {
+    if (!contract.originalText) {
       throw new BadRequestException('Contract text is required for Q&A');
     }
 
     const answer = await this.aiService.answerQuestion(
       question,
-      contract.fullText,
+      contract.originalText,
     );
 
     return await this.prisma.qnA.create({
