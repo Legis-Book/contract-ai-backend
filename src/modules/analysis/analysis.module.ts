@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AnalysisController } from './analysis.controller';
 import { AnalysisService } from './analysis.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { Contract } from './entities/contract.entity';
 import { Clause } from './entities/clause.entity';
 import { RiskFlag } from './entities/risk-flag.entity';
@@ -23,7 +24,7 @@ import { HumanReview } from './entities/human-review.entity';
     ]),
   ],
   controllers: [AnalysisController],
-  providers: [AnalysisService],
+  providers: [PrismaService, AnalysisService],
   exports: [AnalysisService],
 })
 export class AnalysisModule {}
