@@ -105,6 +105,7 @@ model User {
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   deletedAt  DateTime?
+  @@unique([socialId, provider])
 }
 
 model File {
@@ -267,7 +268,7 @@ model UserEntity {
   email        String?        @unique
   password     String?
   provider     String         @default("email")
-  socialId     String?        
+  socialId     String?
   firstName    String?
   lastName     String?
   photoId      String?
@@ -281,10 +282,8 @@ model UserEntity {
   updatedAt    DateTime       @updatedAt
   deletedAt    DateTime?
   commitMetas  VcCommitMeta[] @relation("CommitAuthor")
-  pullRequests VcPr[]         @relation("PrCreatedBy")
-
-  @@unique[socialId]
-  @@id[socialId, provider]
+  pullRequests VcPr[]         @relation("PrCreatedBy")  
+  @@unique([socialId, provider])
 }
 
 model RoleEntity {
