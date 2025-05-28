@@ -32,6 +32,7 @@ import { ContractModule } from './modules/contract/contract.module';
 import { TemplatesModule } from './templates/templates.module';
 import { RulesModule } from './modules/rules/rules.module';
 import { VersionControlModule } from './modules/version-control/version-control.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 // <database-block>
 // TODO: Replace this logic with Prisma integration
@@ -64,7 +65,7 @@ import { VersionControlModule } from './modules/version-control/version-control.
       ],
       envFilePath: ['.env'],
     }),
-    // TODO: Add PrismaModule here when migration is complete
+    PrismaModule,
     I18nModule.forRootAsync({
       useFactory: (configService: ConfigService<AllConfigType>) => ({
         fallbackLanguage: configService.getOrThrow('app.fallbackLanguage', {

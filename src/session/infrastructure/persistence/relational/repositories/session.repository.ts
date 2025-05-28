@@ -6,7 +6,7 @@ import { Session } from '../../../../domain/session';
 
 import { SessionMapper } from '../mappers/session.mapper';
 import { User } from '../../../../../users/domain/user';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from 'nestjs-prisma';
 @Injectable()
 export class SessionRelationalRepository implements SessionRepository {
   constructor(private readonly prisma: PrismaService) {}

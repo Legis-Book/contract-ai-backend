@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  output = "../generated/prisma"  
 }
 
 datasource db {
@@ -254,19 +254,20 @@ model StandardClause {
   jurisdiction      String?
   version           String?
   allowedDeviations Int?
+  isActive          Boolean?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   previousVersionId Int?
   previousVersion   StandardClause? @relation("PreviousVersion", fields: [previousVersionId], references: [id])
   nextVersions      StandardClause[] @relation("PreviousVersion")
 }
-
+ 
 model UserEntity {
   id           Int            @id @default(autoincrement())
   email        String?        @unique
   password     String?
   provider     String         @default("email")
-  socialId     String?
+  socialId     String?        
   firstName    String?
   lastName     String?
   photoId      String?
@@ -281,6 +282,9 @@ model UserEntity {
   deletedAt    DateTime?
   commitMetas  VcCommitMeta[] @relation("CommitAuthor")
   pullRequests VcPr[]         @relation("PrCreatedBy")
+
+  @@unique[socialId]
+  @@id[socialId, provider]
 }
 
 model RoleEntity {

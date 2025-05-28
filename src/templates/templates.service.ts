@@ -12,18 +12,23 @@ export class TemplatesService {
     createStandardClauseDto: CreateStandardClauseDto,
   ): Promise<StandardClause> {
     return await this.prisma.standardClause.create({
-      data: { isActive: true, ...createStandardClauseDto },
+      data: {
+        isActive: true,
+        contractType: createStandardClauseDto.contractType || '',
+        text: createStandardClauseDto.text || '',
+        ...createStandardClauseDto,
+      },
     });
   }
 
   async findAll(): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { isActive: true },
-      orderBy: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findOne(id: string): Promise<StandardClause> {
+  async findOne(id: number): Promise<StandardClause> {
     const clause = await this.prisma.standardClause.findUnique({
       where: { id },
     });
@@ -36,7 +41,7 @@ export class TemplatesService {
   }
 
   async update(
-    id: string,
+    id: number,
     updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
     await this.findOne(id);
@@ -46,7 +51,7 @@ export class TemplatesService {
     });
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: number): Promise<void> {
     await this.prisma.standardClause.update({
       where: { id },
       data: { isActive: false },
@@ -56,14 +61,14 @@ export class TemplatesService {
   async findByType(type: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { type, isActive: true },
-      orderBy: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async findByJurisdiction(jurisdiction: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { jurisdiction, isActive: true },
-      orderBy: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

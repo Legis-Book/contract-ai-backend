@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsString } from 'class-validator';
-import { VcEntityType } from '../../../../generated/prisma';
+import { VcEntityType } from './vc-entity-type.enum';
 
 export class CreateRepoDto {
   @ApiProperty({ enum: VcEntityType })
