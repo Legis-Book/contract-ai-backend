@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TemplateService } from './template.service';
-import { StandardClause } from './entities/standard-clause.entity';
+import { StandardClause } from '../../../generated/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 import { NotFoundException } from '@nestjs/common';
@@ -38,7 +38,7 @@ describe('TemplateService', () => {
         text: 'text',
         jurisdiction: 'us',
       } as CreateStandardClauseDto;
-      const clause = { id: '1', ...dto } as StandardClause;
+      const clause = { id: 1, ...dto } as unknown as StandardClause;
       prisma.standardClause.create.mockResolvedValue(clause);
 
       const result = await service.create(dto);
@@ -60,17 +60,17 @@ describe('TemplateService', () => {
     it('should return all active and latest templates', async () => {
       const templates = [
         {
-          id: '1',
+          id: 1,
           name: 'Clause 1',
           isActive: true,
           isLatest: true,
-        } as StandardClause,
+        } as unknown as StandardClause,
         {
-          id: '2',
+          id: 2,
           name: 'Clause 2',
           isActive: true,
           isLatest: true,
-        } as StandardClause,
+        } as unknown as StandardClause,
       ];
       prisma.standardClause.findMany.mockResolvedValue(templates);
 
@@ -86,11 +86,11 @@ describe('TemplateService', () => {
   describe('findOne', () => {
     it('should return the template when found', async () => {
       const template = {
-        id: '1',
+        id: 1,
         name: 'Clause',
         isActive: true,
         isLatest: true,
-      } as StandardClause;
+      } as unknown as StandardClause;
       prisma.standardClause.findUnique.mockResolvedValue(template);
 
       const result = await service.findOne('1');
@@ -119,7 +119,7 @@ describe('TemplateService', () => {
         version: '1.0.0',
         isActive: true,
         isLatest: true,
-      } as StandardClause;
+      } as unknown as StandardClause;
       prisma.standardClause.findUnique.mockResolvedValue(template);
 
       const result = await service.compareClause('some standard text', '1');
