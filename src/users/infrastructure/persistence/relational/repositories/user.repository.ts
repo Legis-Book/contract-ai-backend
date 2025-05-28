@@ -55,7 +55,7 @@ export class UsersRelationalRepository implements UserRepository {
 
   async findByIds(ids: User['id'][]): Promise<User[]> {
     const entities = await this.prisma.user.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids.map((id) => Number(id)) } },
     });
 
     return entities.map((user) => UserMapper.toDomain(user));
@@ -81,7 +81,7 @@ export class UsersRelationalRepository implements UserRepository {
     if (!socialId || !provider) return null;
 
     const entity = await this.prisma.user.findUnique({
-      where: { socialId, provider },
+      where: { socialId_provider: { socialId, provider } },
     });
 
     return entity ? UserMapper.toDomain(entity) : null;
