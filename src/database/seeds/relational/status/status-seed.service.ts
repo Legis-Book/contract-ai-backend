@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { StatusEntity } from '../../../../statuses/infrastructure/persistence/relational/entities/status.entity';
-// import { StatusEnum } from 'src/common/enums/status.enum';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
 export class StatusSeedService {

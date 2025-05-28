@@ -5,6 +5,7 @@ import { StatusSeedModule } from './status/status-seed.module';
 import { UserSeedModule } from './user/user-seed.module';
 import databaseConfig from '../../config/database.config';
 import appConfig from '../../../config/app.config';
+import { PrismaModule } from 'nestjs-prisma';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import appConfig from '../../../config/app.config';
       load: [databaseConfig, appConfig],
       envFilePath: ['.env'],
     }),
+    PrismaModule.forRoot(),
   ],
 })
 export class SeedModule {}

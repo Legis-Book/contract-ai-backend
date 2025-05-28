@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SessionRepository } from '../session.repository';
 import { SessionRelationalRepository } from './repositories/session.repository';
+import { PrismaModule } from 'nestjs-prisma';
 
 @Module({
   providers: [
@@ -10,5 +11,6 @@ import { SessionRelationalRepository } from './repositories/session.repository';
     },
   ],
   exports: [SessionRepository],
+  imports: [PrismaModule.forRoot()],
 })
 export class RelationalSessionPersistenceModule {}

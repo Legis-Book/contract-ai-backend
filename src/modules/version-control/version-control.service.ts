@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from 'nestjs-prisma';
 import { ObjectStoreService } from './object-store.service';
 import { OutboxService } from './outbox.service';
 import { GraphService } from './graph.service';
