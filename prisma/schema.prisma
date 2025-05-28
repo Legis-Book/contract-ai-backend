@@ -228,6 +228,8 @@ model HumanReview {
   reviewer       User?       @relation("ReviewerReviews", fields: [reviewerId], references: [id])
   contractId     String
   contract       Contract    @relation(fields: [contractId], references: [id])
+  userId         Int?
+  user           UserEntity? @relation("UserEntityReviews", fields: [userId], references: [id])
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 }
@@ -271,7 +273,7 @@ model UserEntity {
   photo        FileEntity?    @relation(fields: [photoId], references: [id])
   roleId       Int?
   role         RoleEntity?    @relation(fields: [roleId], references: [id])
-  reviews      HumanReview[]
+  reviews      HumanReview[]  @relation("UserEntityReviews")
   statusId     Int?
   status       StatusEntity?  @relation(fields: [statusId], references: [id])
   createdAt    DateTime       @default(now())
@@ -325,10 +327,12 @@ enum VcPrStatus {
 }
 
 model VcObject {
-  sha       String       @id @db.Char(64)
-  data      Bytes
-  type      VcObjectType
-  createdAt DateTime     @default(now())
+  sha         String         @id @db.Char(64)
+  data        Bytes
+  type        VcObjectType
+  createdAt   DateTime       @default(now())
+  refs        VcRef[]        @relation("VcObjectRefs")
+  commitMetas VcCommitMeta[] @relation("VcObjectCommitMetas")
 }
 
 model VcRepo {
@@ -348,7 +352,7 @@ model VcRef {
   refType   VcRefType
   isMutable Boolean   @default(true)
   repo      VcRepo    @relation(fields: [repoId], references: [id])
-  commit    VcObject  @relation(fields: [commitSha], references: [sha])
+  commit    VcObject  @relation("VcObjectRefs", fields: [commitSha], references: [sha])
 }
 
 model VcPr {
@@ -383,7 +387,7 @@ model VcCommitMeta {
   branchHint String?
   repo       VcRepo     @relation(fields: [repoId], references: [id])
   author     UserEntity @relation("CommitAuthor", fields: [authorId], references: [id])
-  commit     VcObject   @relation(fields: [commitSha], references: [sha])
+  commit     VcObject   @relation("VcObjectCommitMetas", fields: [commitSha], references: [sha])
 }
 
 enum VcOutboxStatus {

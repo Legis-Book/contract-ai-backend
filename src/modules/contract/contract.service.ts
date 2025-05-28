@@ -195,7 +195,7 @@ export class ContractService {
         clauses: true,
         riskFlags: true,
         summaries: true,
-        qnas: true,
+        qnaInteractions: true,
         reviews: true,
       },
     });
@@ -241,11 +241,11 @@ export class ContractService {
   async getContractQnA(id: string): Promise<QnA[]> {
     const contract = await this.prisma.contract.findUnique({
       where: { id },
-      include: { qnas: true },
+      include: { qnaInteractions: true },
     });
     if (!contract)
       throw new NotFoundException(`Contract with ID ${id} not found`);
-    return contract.qnas;
+    return contract.qnaInteractions;
   }
 
   async updateRiskFlag(
@@ -272,7 +272,7 @@ export class ContractService {
   async exportAnalysis(id: string): Promise<ExportAnalysisResult> {
     const contract = await this.prisma.contract.findUnique({
       where: { id },
-      include: { summaries: true, riskFlags: true, qnas: true },
+      include: { summaries: true, riskFlags: true, qnaInteractions: true },
     });
     if (!contract)
       throw new NotFoundException(`Contract with ID ${id} not found`);
@@ -280,7 +280,7 @@ export class ContractService {
       contract,
       summaries: contract.summaries,
       riskFlags: contract.riskFlags,
-      qna: contract.qnas,
+      qna: contract.qnaInteractions,
     };
   }
 

@@ -12,10 +12,12 @@ export class ObjectStoreService {
   private s3: S3Client;
   constructor(private readonly configService: ConfigService<AllConfigType>) {
     this.s3 = new S3Client({
-      region: configService.get('file.awsS3Region', { infer: true }),
+      region: configService.getOrThrow('file.awsS3Region', { infer: true }),
       credentials: {
-        accessKeyId: configService.get('file.accessKeyId', { infer: true }),
-        secretAccessKey: configService.get('file.secretAccessKey', {
+        accessKeyId: configService.getOrThrow('file.accessKeyId', {
+          infer: true,
+        }),
+        secretAccessKey: configService.getOrThrow('file.secretAccessKey', {
           infer: true,
         }),
       },
