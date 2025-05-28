@@ -1,18 +1,22 @@
 import { Injectable } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { RoleEntity } from '../../../../roles/infrastructure/persistence/relational/entities/role.entity';
-// import { RoleEnum } from 'src/common/enums/role.enum';
+import { PrismaService } from '../../../../prisma/prisma.service';
 
 @Injectable()
 export class RoleSeedService {
-  // TODO: Migrate to Prisma
-  // constructor(
-  //   @InjectRepository(RoleEntity)
-  //   private repository: Repository<RoleEntity>,
-  // ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async run() {
-    // TODO: Implement with Prisma
+    const roles = [
+      { id: 1, name: 'Admin' },
+      { id: 2, name: 'User' },
+      { id: 3, name: 'Manager' },
+    ];
+    for (const role of roles) {
+      await this.prisma.role.upsert({
+        where: { id: role.id },
+        update: { name: role.name },
+        create: role,
+      });
+    }
   }
 }
