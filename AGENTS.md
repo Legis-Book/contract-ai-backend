@@ -22,7 +22,7 @@ This repository uses the NestJS framework with a hexagonal architecture. Follow 
 - Use `ClassSerializerInterceptor` for serialization as shown in `docs/serialization.md`.
 - Organise code according to the hexagonal architecture described in `docs/architecture.md`.
 
-### TypeORM
+### Prisma ORM
 - Create migrations with `npm run migration:generate` and run them with `npm run migration:run`.
 - Keep repository methods single–purpose as recommended in `docs/architecture.md`.
 - Add indexes on foreign keys and adjust `DATABASE_MAX_CONNECTIONS` according to `docs/database.md`.
