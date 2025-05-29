@@ -640,7 +640,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StandardClause"
+                  "$ref": "#/components/schemas/StandardClauseDto"
                 }
               }
             }
@@ -667,7 +667,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/StandardClause"
+                    "$ref": "#/components/schemas/StandardClauseDto"
                   }
                 }
               }
@@ -704,7 +704,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StandardClause"
+                  "$ref": "#/components/schemas/StandardClauseDto"
                 }
               }
             }
@@ -751,7 +751,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StandardClause"
+                  "$ref": "#/components/schemas/StandardClauseDto"
                 }
               }
             }
@@ -822,7 +822,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/StandardClause"
+                    "$ref": "#/components/schemas/StandardClauseDto"
                   }
                 }
               }
@@ -861,7 +861,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/StandardClause"
+                    "$ref": "#/components/schemas/StandardClauseDto"
                   }
                 }
               }
@@ -1431,7 +1431,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1452,7 +1452,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1483,7 +1483,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1507,10 +1507,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Rule"
-                  }
+                  "type": "object"
                 }
               }
             }
@@ -1540,7 +1537,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Rule"
+                  "type": "object"
                 }
               }
             }
@@ -1589,7 +1586,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Rule"
+                  "type": "object"
                 }
               }
             }
@@ -1631,7 +1628,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Rule"
+                  "type": "object"
                 }
               }
             }
@@ -1680,6 +1677,99 @@
         "summary": "Delete rule",
         "tags": [
           "rules"
+        ]
+      }
+    },
+    "/api/repos": {
+      "post": {
+        "operationId": "VersionControlController_createRepo",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRepoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Create repository",
+        "tags": [
+          "version-control"
+        ]
+      }
+    },
+    "/api/repos/{id}/branches": {
+      "post": {
+        "operationId": "VersionControlController_createBranch",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBranchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Create branch",
+        "tags": [
+          "version-control"
+        ]
+      }
+    },
+    "/api/repos/{id}/commits": {
+      "post": {
+        "operationId": "VersionControlController_commit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Create commit",
+        "tags": [
+          "version-control"
         ]
       }
     }
@@ -1862,8 +1952,7 @@
             "type": "string"
           },
           "deletedAt": {
-            "format": "date-time",
-            "type": "string"
+            "type": "object"
           }
         },
         "required": [
@@ -2134,7 +2223,7 @@
         "type": "object",
         "properties": {}
       },
-      "StandardClause": {
+      "StandardClauseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -2168,6 +2257,9 @@
           "updatedAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "previousVersionId": {
+            "type": "number"
           }
         },
         "required": [
@@ -2176,8 +2268,6 @@
           "type",
           "contractType",
           "text",
-          "jurisdiction",
-          "version",
           "createdAt",
           "updatedAt"
         ]
@@ -2196,9 +2286,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "open",
-              "resolved",
-              "ignored"
+              "OPEN",
+              "RESOLVED",
+              "IGNORED"
             ]
           },
           "notes": {
@@ -2212,33 +2302,6 @@
       "IngestContractDto": {
         "type": "object",
         "properties": {}
-      },
-      "Rule": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "pattern": {
-            "type": "string"
-          },
-          "similarityThreshold": {
-            "type": "number"
-          },
-          "deviationAllowedPct": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
       },
       "CreateRuleDto": {
         "type": "object",
@@ -2282,6 +2345,62 @@
             "type": "number"
           }
         }
+      },
+      "CreateRepoDto": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "contract",
+              "template"
+            ]
+          },
+          "entityId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "entityType",
+          "entityId"
+        ]
+      },
+      "CreateBranchDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fromCommit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateCommitDto": {
+        "type": "object",
+        "properties": {
+          "branch": {
+            "type": "string"
+          },
+          "treeSha": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "branch",
+          "treeSha",
+          "message",
+          "authorId"
+        ]
       }
     }
   }

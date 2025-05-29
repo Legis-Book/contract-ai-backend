@@ -52,6 +52,13 @@ export default () => ({
     clientId: process.env.GOOGLE_CLIENT_ID || '',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
   },
+  file: {
+    awsS3Region: process.env.AWS_S3_REGION || '',
+    accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY || '',
+    awsDefaultS3Bucket: process.env.AWS_S3_BUCKET || '',
+    maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '10000000', 10),
+  },
 });
 
 // Gemini and OpenAI configs are now available via @nestjs/config injection using their respective keys ('gemini', 'openai').
