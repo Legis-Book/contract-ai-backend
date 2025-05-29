@@ -21,7 +21,7 @@ import {
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { AiService } from '../ai/ai.service';
-import scribe from 'scribe.js-ocr';
+//import { scribe } from 'scribe.js-ocr';
 import fs from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -122,6 +122,7 @@ export class ContractService {
       );
       await fs.writeFile(tempPath, file.buffer);
       try {
+        const { scribe } = await import('scribe.js-ocr');
         const results = await scribe.extractText([tempPath]);
         fullText = results;
       } catch (e) {
