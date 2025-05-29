@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { VcOutboxStatus } from '../../../generated/prisma';
+import { PrismaService } from '@src/prisma/prisma.service';
+import { VcOutboxStatus } from '@orm/prisma';
 
 @Injectable()
 export class OutboxService {

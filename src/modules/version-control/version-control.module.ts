@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from 'nestjs-prisma';
+import { PrismaModule } from '@src/prisma/prisma.module';
 import { VersionControlService } from './version-control.service';
 import { VersionControlController } from './version-control.controller';
 import { ObjectStoreService } from './object-store.service';
@@ -8,7 +8,7 @@ import { GraphService } from './graph.service';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ConfigModule, PrismaModule.forRoot()],
+  imports: [ConfigModule, PrismaModule],
   controllers: [VersionControlController],
   providers: [
     VersionControlService,

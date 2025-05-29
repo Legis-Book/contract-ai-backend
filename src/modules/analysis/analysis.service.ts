@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
+import { PrismaService } from '@src/prisma/prisma.service';
 import {
   Contract,
   Clause,
@@ -7,7 +7,9 @@ import {
   Summary,
   QnA,
   HumanReview,
-} from '../../../generated/prisma';
+  ReviewStatus,
+  RiskFlagStatus,
+} from '@orm/prisma';
 import { ClauseType } from './entities/clause.entity';
 import { RiskType, RiskSeverity } from './entities/risk-flag.entity';
 import { SummaryType } from './entities/summary.entity';
@@ -24,7 +26,6 @@ import { UpdateQnADto } from './dto/update-qna.dto';
 import { CreateHumanReviewDto } from './dto/create-human-review.dto';
 import { UpdateHumanReviewDto } from './dto/update-human-review.dto';
 import { ContractStatus } from './entities/contract.entity';
-import { ReviewStatus } from './entities/human-review.entity';
 import { AiService } from '../ai/ai.service';
 
 @Injectable()
@@ -42,6 +43,9 @@ export class AnalysisService {
       data: {
         ...createContractDto,
         status: ContractStatus.PENDING_REVIEW,
+        parties: createContractDto.parties
+          ? JSON.stringify(createContractDto.parties)
+          : undefined,
       },
     });
   }
@@ -80,7 +84,12 @@ export class AnalysisService {
     await this.findContract(id);
     return await this.prisma.contract.update({
       where: { id },
-      data: updateContractDto,
+      data: {
+        ...updateContractDto,
+        parties: updateContractDto.parties
+          ? JSON.stringify(updateContractDto.parties)
+          : undefined,
+      },
     });
   }
 
@@ -97,6 +106,7 @@ export class AnalysisService {
     return await this.prisma.clause.create({
       data: {
         ...createClauseDto,
+        number: createClauseDto.number,
         contractId,
       },
     });
@@ -146,6 +156,8 @@ export class AnalysisService {
       data: {
         ...createRiskFlagDto,
         contractId,
+        status: RiskFlagStatus.OPEN,
+        notes: '',
         ...(clauseId ? { clauseId } : {}),
       },
     });
@@ -287,8 +299,12 @@ export class AnalysisService {
   ): Promise<HumanReview> {
     return await this.prisma.humanReview.create({
       data: {
-        ...createHumanReviewDto,
         contractId,
+        status: createHumanReviewDto.status,
+        comments: createHumanReviewDto.comments,
+        startDate: createHumanReviewDto.startDate,
+        completionDate: createHumanReviewDto.completionDate,
+        reviewerId: createHumanReviewDto.reviewerId,
       },
     });
   }
@@ -354,7 +370,7 @@ export class AnalysisService {
     for (const [index, clauseText] of clauses.entries()) {
       // Create clause
       const clause = await this.createClause(contractId, {
-        number: (index + 1).toString(),
+        number: index + 1,
         text: clauseText,
       });
 

@@ -35,7 +35,7 @@ export class TemplateController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a template by id' })
   @ApiResponse({ status: 200, description: 'Return the template' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.templateService.findOne(id);
   }
 
@@ -43,7 +43,7 @@ export class TemplateController {
   @ApiOperation({ summary: 'Update a template' })
   @ApiResponse({ status: 200, description: 'Template updated successfully' })
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateStandardClauseDto: UpdateStandardClauseDto,
   ) {
     return this.templateService.update(id, updateStandardClauseDto);
@@ -52,7 +52,7 @@ export class TemplateController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a template' })
   @ApiResponse({ status: 200, description: 'Template deleted successfully' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.templateService.remove(id);
   }
 
@@ -83,7 +83,7 @@ export class TemplateController {
     description: 'Comparison completed successfully',
   })
   compareClause(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body('clauseText') clauseText: string,
   ): Promise<{
     similarity: number;
@@ -96,7 +96,7 @@ export class TemplateController {
   @Get(':id/versions')
   @ApiOperation({ summary: 'Get template versions' })
   @ApiResponse({ status: 200, description: 'Return template versions' })
-  getTemplateVersions(@Param('id') id: string) {
+  getTemplateVersions(@Param('id') id: number) {
     return this.templateService.getTemplateVersions(id);
   }
 }

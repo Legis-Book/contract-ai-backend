@@ -1,4 +1,5 @@
 import { IsString, IsOptional, IsEnum } from 'class-validator';
+import { ContractStatus } from '@orm/prisma';
 
 export class CreateContractDto {
   @IsString()
@@ -22,9 +23,9 @@ export class CreateContractDto {
   @IsOptional()
   parties?: string;
 
-  @IsEnum(['DRAFT', 'IN_REVIEW', 'REVIEWED', 'APPROVED', 'REJECTED'])
+  @IsEnum(ContractStatus)
   @IsOptional()
-  status?: string;
+  status?: ContractStatus;
 
   @IsString()
   @IsOptional()
