@@ -11,7 +11,7 @@ import { RelationalUserPersistenceModule } from './infrastructure/persistence/re
 import { DatabaseConfig } from '../database/config/database-config.type';
 import databaseConfig from '../database/config/database.config';
 import { FilesModule } from '../files/files.module';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '@src/prisma/prisma.module';
 
 // <database-block>
 const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)

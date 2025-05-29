@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { StandardClause } from '../../../generated/prisma';
+import { PrismaService } from '@src/prisma/prisma.service';
+import { StandardClause } from '@orm/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 import { Deviation } from './interfaces/deviation.interface';
@@ -15,22 +15,28 @@ export class TemplateService {
   ): Promise<StandardClause> {
     return await this.prisma.standardClause.create({
       data: {
-        ...createStandardClauseDto,
+        name: createStandardClauseDto.name,
+        type: createStandardClauseDto.type,
+        text: createStandardClauseDto.text,
+        jurisdiction: createStandardClauseDto.jurisdiction,
         isActive: true,
         isLatest: true,
         version: '1.0.0',
-        nextVersions: [],
+        contractType: createStandardClauseDto.type,
+        nextVersions: {
+          create: [],
+        },
       },
     });
   }
 
   async findAll(): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
-      where: { isActive: true, isLatest: true },
+      where: { isActive: true },
     });
   }
 
-  async findOne(id: string): Promise<StandardClause> {
+  async findOne(id: number): Promise<StandardClause> {
     const standardClause = await this.prisma.standardClause.findUnique({
       where: { id },
     });
@@ -41,11 +47,11 @@ export class TemplateService {
   }
 
   async update(
-    id: string,
+    id: number,
     updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
     const numericId = Number(id);
-    const standardClause = await this.findOne(id);
+    const standardClause = await this.findOne(numericId);
 
     // If there are significant changes, create a new version
     if (this.hasSignificantChanges(standardClause, updateStandardClauseDto)) {
@@ -58,10 +64,14 @@ export class TemplateService {
       // Create new version
       const newVersion = await this.prisma.standardClause.create({
         data: {
-          ...updateStandardClauseDto,
+          name: updateStandardClauseDto.name!,
+          type: updateStandardClauseDto.type!,
+          text: updateStandardClauseDto.text!,
+          jurisdiction: updateStandardClauseDto.jurisdiction ?? null,
           previousVersionId: numericId,
           isActive: true,
           isLatest: true,
+          contractType: updateStandardClauseDto.type ?? '',
           version: this.incrementVersion(standardClause.version ?? '1.0.0'),
         },
       });
@@ -71,14 +81,23 @@ export class TemplateService {
     // Otherwise, update existing version
     return await this.prisma.standardClause.update({
       where: { id: numericId },
-      data: updateStandardClauseDto,
+      data: {
+        name: updateStandardClauseDto.name,
+        type: updateStandardClauseDto.type,
+        text: updateStandardClauseDto.text,
+        jurisdiction: updateStandardClauseDto.jurisdiction,
+        contractType: updateStandardClauseDto.type,
+        allowedDeviations: updateStandardClauseDto.allowedDeviations
+          ? (JSON.stringify(updateStandardClauseDto.allowedDeviations) as any)
+          : null,
+      },
     });
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: number): Promise<void> {
     await this.findOne(id);
     await this.prisma.standardClause.update({
-      where: { id },
+      where: { id: id },
       data: { isActive: false },
     });
   }
@@ -97,7 +116,7 @@ export class TemplateService {
 
   async compareClause(
     clauseText: string,
-    templateId: string,
+    templateId: number,
   ): Promise<{
     similarity: number;
     isCompliant: boolean;
@@ -115,19 +134,16 @@ export class TemplateService {
     };
   }
 
-  async getTemplateVersions(id: string): Promise<StandardClause[]> {
+  async getTemplateVersions(id: number): Promise<StandardClause[]> {
     let currentVersion = await this.findOne(id);
     const versions: StandardClause[] = [currentVersion];
-
     while (currentVersion.previousVersionId) {
-      currentVersion = await this.prisma.standardClause.findUnique({
+      const previousVersion = await this.prisma.standardClause.findUnique({
         where: { id: currentVersion.previousVersionId },
       });
-      if (currentVersion) {
-        versions.push(currentVersion);
-      } else {
-        break;
-      }
+      if (!previousVersion) break;
+      versions.push(previousVersion);
+      currentVersion = previousVersion;
     }
 
     return versions.reverse();
@@ -177,7 +193,7 @@ export class TemplateService {
       template.allowedDeviations &&
       Array.isArray(template.allowedDeviations)
     ) {
-      for (const allowed of template.allowedDeviations as AllowedDeviation[]) {
+      for (const allowed of template.allowedDeviations as unknown as AllowedDeviation[]) {
         // Validate allowed.type is a key of StandardClause and the value is a number
         if (
           typeof allowed.type === 'string' &&

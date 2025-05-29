@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { RulesService } from './rules.service';
 import { RulesController } from './rules.controller';
-import { PrismaModule } from 'nestjs-prisma';
+import { PrismaModule } from '@src/prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule.forRoot()],
+  imports: [PrismaModule],
   controllers: [RulesController],
   providers: [RulesService],
   exports: [RulesService],

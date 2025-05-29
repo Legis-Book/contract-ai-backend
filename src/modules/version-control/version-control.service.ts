@@ -1,13 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
+import { PrismaService } from '@src/prisma/prisma.service';
 import { ObjectStoreService } from './object-store.service';
 import { OutboxService } from './outbox.service';
 import { GraphService } from './graph.service';
-import {
-  VcEntityType,
-  VcObjectType,
-  VcRefType,
-} from '../../../generated/prisma';
+import { VcEntityType, VcObjectType, VcRefType } from '@orm/prisma';
 import crypto from 'crypto';
 
 @Injectable()
@@ -86,9 +82,9 @@ export class VersionControlService {
     if (!existing) {
       await this.objectStore.storeBlobIfAbsent(sha, data);
       await this.prisma.vcObject.create({
-        data: { sha, data, type: VcObjectType.commit },
+        data: { sha, data: Buffer.from(data), type: VcObjectType.commit },
       });
-    } else if (!existing.data.equals(data)) {
+    } else if (!Buffer.from(existing.data).equals(data)) {
       throw new Error('SHA collision for commit');
     }
     await this.prisma.vcRef.update({

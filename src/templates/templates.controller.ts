@@ -41,20 +41,20 @@ export class TemplatesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<StandardClause> {
+  findOne(@Param('id') id: number): Promise<StandardClause> {
     return this.templatesService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
     return this.templatesService.update(id, updateStandardClauseDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
+  remove(@Param('id') id: number): Promise<void> {
     return this.templatesService.remove(id);
   }
 }

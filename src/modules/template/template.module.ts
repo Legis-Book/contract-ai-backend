@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TemplateService } from './template.service';
 import { TemplateController } from './template.controller';
-import { PrismaModule } from 'nestjs-prisma';
+import { PrismaModule } from '@src/prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule.forRoot()],
+  imports: [PrismaModule],
   controllers: [TemplateController],
   providers: [TemplateService],
   exports: [TemplateService],

@@ -86,6 +86,12 @@ enum ReviewStatus {
   REJECTED
 }
 
+enum RiskFlagStatus {
+  OPEN
+  RESOLVED
+  IGNORED
+}
+
 model User {
   id         Int          @id @default(autoincrement())
   email      String?      @unique
@@ -158,7 +164,7 @@ model Contract {
 
 model Clause {
   id              String      @id @default(uuid())
-  number          String
+  number          Int
   text            String
   type            ClauseType?
   isReviewed      Boolean     @default(false)
@@ -182,6 +188,8 @@ model RiskFlag {
   isReviewed          Boolean     @default(false)
   isResolved          Boolean     @default(false)
   reviewerComments    String?
+  status              RiskFlagStatus
+  notes               String
   contractId          String
   contract            Contract    @relation(fields: [contractId], references: [id])
   clauseId            String?
@@ -254,8 +262,9 @@ model StandardClause {
   text              String
   jurisdiction      String?
   version           String?
-  allowedDeviations Int?
+  allowedDeviations Json?
   isActive          Boolean?
+  isLatest          Boolean?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   previousVersionId Int?
@@ -356,6 +365,8 @@ model VcRef {
   isMutable Boolean   @default(true)
   repo      VcRepo    @relation(fields: [repoId], references: [id])
   commit    VcObject  @relation("VcObjectRefs", fields: [commitSha], references: [sha])
+
+  @@unique([id, repoId])
 }
 
 model VcPr {

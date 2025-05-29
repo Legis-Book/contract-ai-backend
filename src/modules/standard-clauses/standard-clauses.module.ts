@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { StandardClausesService } from './standard-clauses.service';
 import { StandardClausesController } from './standard-clauses.controller';
-import { PrismaModule } from 'nestjs-prisma';
+import { PrismaModule } from '@src/prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule.forRoot()],
+  imports: [PrismaModule],
   controllers: [StandardClausesController],
   providers: [StandardClausesService],
   exports: [StandardClausesService],

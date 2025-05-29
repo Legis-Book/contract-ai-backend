@@ -4,7 +4,7 @@ import {
   OnModuleInit,
   Scope,
 } from '@nestjs/common';
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@orm/prisma';
 
 @Injectable({
   scope: Scope.REQUEST,

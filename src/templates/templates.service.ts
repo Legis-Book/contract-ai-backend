@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { StandardClause } from '../../generated/prisma';
+import { PrismaService } from '@src/prisma/prisma.service';
+import { StandardClause } from '@orm/prisma';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
 import { UpdateStandardClauseDto } from './dto/update-standard-clause.dto';
 

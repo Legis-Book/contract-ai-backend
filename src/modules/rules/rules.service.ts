@@ -3,8 +3,8 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { Rule } from '../../../generated/prisma';
+import { PrismaService } from '@src/prisma/prisma.service';
+import { Rule } from '@orm/prisma';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
 

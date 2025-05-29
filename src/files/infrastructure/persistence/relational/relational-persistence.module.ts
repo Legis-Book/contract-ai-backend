@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { FileRepository } from '../file.repository';
 import { FileRelationalRepository } from './repositories/file.repository';
-import { PrismaModule } from 'nestjs-prisma';
+import { PrismaModule } from '@src/prisma/prisma.module';
 
 @Module({
   providers: [
@@ -11,6 +11,6 @@ import { PrismaModule } from 'nestjs-prisma';
     },
   ],
   exports: [FileRepository],
-  imports: [PrismaModule.forRoot()],
+  imports: [PrismaModule],
 })
 export class RelationalFilePersistenceModule {}

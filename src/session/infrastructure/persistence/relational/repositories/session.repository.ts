@@ -6,13 +6,13 @@ import { Session } from '../../../../domain/session';
 
 import { SessionMapper } from '../mappers/session.mapper';
 import { User } from '../../../../../users/domain/user';
-import { PrismaService } from 'nestjs-prisma';
+import { PrismaService } from '@src/prisma/prisma.service';
 @Injectable()
 export class SessionRelationalRepository implements SessionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: Session['id']): Promise<NullableType<Session>> {
-    const entity = await this.prisma.Session.findUnique({
+    const entity = await this.prisma.session.findUnique({
       where: {
         id: Number(id),
       },
@@ -21,11 +21,12 @@ export class SessionRelationalRepository implements SessionRepository {
     return entity ? SessionMapper.toDomain(entity) : null;
   }
 
-  create(data: Session) {
+  async create(data: Session) {
     const persistenceModel = SessionMapper.toPersistence(data);
-    return this.prisma.Session.create({
+    const created = await this.prisma.session.create({
       data: persistenceModel,
     });
+    return SessionMapper.toDomain(created);
   }
 
   async update(
@@ -34,7 +35,7 @@ export class SessionRelationalRepository implements SessionRepository {
       Omit<Session, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>
     >,
   ): Promise<Session | null> {
-    const entity = await this.prisma.Session.findUnique({
+    const entity = await this.prisma.session.findUnique({
       where: { id: Number(id) },
     });
 
@@ -42,7 +43,7 @@ export class SessionRelationalRepository implements SessionRepository {
       throw new Error('Session not found');
     }
 
-    const updatedEntity = await this.prisma.Session.update({
+    const updatedEntity = await this.prisma.session.update({
       where: { id: Number(id) },
       data: SessionMapper.toPersistence({
         ...SessionMapper.toDomain(entity),
@@ -54,13 +55,13 @@ export class SessionRelationalRepository implements SessionRepository {
   }
 
   async deleteById(id: Session['id']): Promise<void> {
-    await this.prisma.Session.delete({
+    await this.prisma.session.delete({
       where: { id: Number(id) },
     });
   }
 
   async deleteByUserId(conditions: { userId: User['id'] }): Promise<void> {
-    await this.prisma.Session.deleteMany({
+    await this.prisma.session.deleteMany({
       where: {
         user: {
           id: Number(conditions.userId),
@@ -73,7 +74,7 @@ export class SessionRelationalRepository implements SessionRepository {
     userId: User['id'];
     excludeSessionId: Session['id'];
   }): Promise<void> {
-    await this.prisma.Session.deleteMany({
+    await this.prisma.session.deleteMany({
       where: {
         user: {
           id: Number(conditions.userId),

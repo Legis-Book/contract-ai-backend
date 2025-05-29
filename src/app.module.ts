@@ -32,22 +32,7 @@ import { ContractModule } from './modules/contract/contract.module';
 import { TemplatesModule } from './templates/templates.module';
 import { RulesModule } from './modules/rules/rules.module';
 import { VersionControlModule } from './modules/version-control/version-control.module';
-import { PrismaModule } from './prisma/prisma.module';
-
-// <database-block>
-// TODO: Replace this logic with Prisma integration
-// const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
-//   .isDocumentDatabase
-//   ? MongooseModule.forRootAsync({
-//       useClass: MongooseConfigService,
-//     })
-//   : TypeOrmModule.forRootAsync({
-//       useClass: TypeOrmConfigService,
-//       dataSourceFactory: async (options: DataSourceOptions) => {
-//         return new DataSource(options).initialize();
-//       },
-//     });
-// </database-block>
+import { PrismaModule } from '@src/prisma/prisma.module';
 
 @Module({
   imports: [
