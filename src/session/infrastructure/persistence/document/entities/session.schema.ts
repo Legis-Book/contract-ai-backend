@@ -25,7 +25,10 @@ export class SessionSchemaClass extends EntityDocumentHelper {
   @Prop({ default: now })
   updatedAt: Date;
 
-  @Prop()
+  @Prop({
+    type: Date,
+    default: null,
+  })
   deletedAt: Date | null;
 }
 

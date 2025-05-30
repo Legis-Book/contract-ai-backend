@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from '@src/prisma/prisma.service';
 import { NullableType } from '../../../../../utils/types/nullable.type';
 import { FilterUserDto, SortUserDto } from '../../../../dto/query-user.dto';
 import { UserRepository } from '../../user.repository';
@@ -13,7 +13,7 @@ export class UsersRelationalRepository implements UserRepository {
 
   async create(data: User): Promise<User> {
     const persistenceModel = UserMapper.toPersistence(data);
-    const newEntity = await this.prisma.User.create({
+    const newEntity = await this.prisma.user.create({
       data: persistenceModel,
     });
     return UserMapper.toDomain(newEntity);
@@ -33,7 +33,7 @@ export class UsersRelationalRepository implements UserRepository {
       where.role = { in: filterOptions.roles.map((role) => Number(role.id)) };
     }
 
-    const entities = await this.prisma.User.findMany({
+    const entities = await this.prisma.user.findMany({
       skip: (paginationOptions.page - 1) * paginationOptions.limit,
       take: paginationOptions.limit,
       where: where,
@@ -46,7 +46,7 @@ export class UsersRelationalRepository implements UserRepository {
   }
 
   async findById(id: User['id']): Promise<NullableType<User>> {
-    const entity = await this.prisma.User.findUnique({
+    const entity = await this.prisma.user.findUnique({
       where: { id: Number(id) },
     });
 
@@ -54,8 +54,8 @@ export class UsersRelationalRepository implements UserRepository {
   }
 
   async findByIds(ids: User['id'][]): Promise<User[]> {
-    const entities = await this.prisma.User.findMany({
-      where: { id: { in: ids } },
+    const entities = await this.prisma.user.findMany({
+      where: { id: { in: ids.map((id) => Number(id)) } },
     });
 
     return entities.map((user) => UserMapper.toDomain(user));
@@ -64,7 +64,7 @@ export class UsersRelationalRepository implements UserRepository {
   async findByEmail(email: User['email']): Promise<NullableType<User>> {
     if (!email) return null;
 
-    const entity = await this.prisma.User.findUnique({
+    const entity = await this.prisma.user.findUnique({
       where: { email },
     });
 
@@ -80,15 +80,15 @@ export class UsersRelationalRepository implements UserRepository {
   }): Promise<NullableType<User>> {
     if (!socialId || !provider) return null;
 
-    const entity = await this.prisma.User.findUnique({
-      where: { socialId, provider },
+    const entity = await this.prisma.user.findUnique({
+      where: { socialId_provider: { socialId, provider } },
     });
 
     return entity ? UserMapper.toDomain(entity) : null;
   }
 
   async update(id: User['id'], payload: Partial<User>): Promise<User> {
-    const entity = await this.prisma.User.findUnique({
+    const entity = await this.prisma.user.findUnique({
       where: { id: Number(id) },
     });
 
@@ -96,7 +96,7 @@ export class UsersRelationalRepository implements UserRepository {
       throw new Error('User not found');
     }
 
-    const updatedEntity = await this.prisma.User.update({
+    const updatedEntity = await this.prisma.user.update({
       where: { id: Number(id) },
       data: UserMapper.toPersistence({
         ...UserMapper.toDomain(entity),
@@ -108,7 +108,7 @@ export class UsersRelationalRepository implements UserRepository {
   }
 
   async remove(id: User['id']): Promise<void> {
-    await this.prisma.User.delete({
+    await this.prisma.user.delete({
       where: { id: Number(id) },
     });
   }

@@ -3,18 +3,25 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@src/prisma/prisma.service';
 import {
   Contract,
   Summary,
   RiskFlag,
   QnA,
   HumanReview,
-} from '../../../generated/prisma';
+  ContractStatus,
+  ContractType,
+  ClauseType,
+  RiskType,
+  RiskSeverity,
+  SummaryType,
+  RiskFlagStatus,
+} from '@orm/prisma';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { AiService } from '../ai/ai.service';
-import scribe from 'scribe.js-ocr';
+//import { scribe } from 'scribe.js-ocr';
 import fs from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -32,9 +39,13 @@ export class ContractService {
     private aiService: AiService,
     private prisma: PrismaService,
   ) {}
-
   async create(createContractDto: CreateContractDto): Promise<Contract> {
-    return await this.prisma.contract.create({ data: createContractDto });
+    return await this.prisma.contract.create({
+      data: {
+        ...createContractDto,
+        status: createContractDto.status,
+      },
+    });
   }
 
   async findAll(): Promise<Contract[]> {
@@ -43,7 +54,7 @@ export class ContractService {
         clauses: true,
         riskFlags: true,
         summaries: true,
-        qnas: true,
+        qnaInteractions: true,
         reviews: true,
       },
     });
@@ -56,7 +67,7 @@ export class ContractService {
         clauses: true,
         riskFlags: true,
         summaries: true,
-        qnas: true,
+        qnaInteractions: true,
         reviews: true,
       },
     });
@@ -111,6 +122,7 @@ export class ContractService {
       );
       await fs.writeFile(tempPath, file.buffer);
       try {
+        const { scribe } = await import('scribe.js-ocr');
         const results = await scribe.extractText([tempPath]);
         fullText = results;
       } catch (e) {
@@ -124,10 +136,9 @@ export class ContractService {
     return await this.prisma.contract.create({
       data: {
         title: file.originalname,
-        filename: file.originalname,
-        contractType,
-        status: 'pending_review',
-        fullText,
+        type: contractType as ContractType,
+        status: ContractStatus.PENDING_REVIEW,
+        originalText: fullText,
       },
     });
   }
@@ -150,6 +161,11 @@ export class ContractService {
       ...clauseData,
       id: crypto.randomUUID(), // Generate UUID for clause
       contractId: contract.id,
+      title: clauseData.title,
+      type: clauseData.type as ClauseType | null,
+      startIndex: clauseData.startIndex,
+      endIndex: clauseData.endIndex,
+      confidence: clauseData.confidence,
     }));
 
     // Transform risks data to match schema
@@ -157,30 +173,44 @@ export class ContractService {
       ...riskData,
       id: crypto.randomUUID(), // Generate UUID for risk flag
       contractId: contract.id,
+      type: riskData.type as RiskType,
+      severity: riskData.severity as RiskSeverity,
     }));
 
     // Save clauses
     await Promise.all(
-      transformedClauses.map((clauseData) =>
-        this.prisma.clause.create({ data: clauseData }),
+      transformedClauses.map((clauseData, index) =>
+        this.prisma.clause.create({
+          data: {
+            ...clauseData,
+            number: index + 1,
+          },
+        }),
       ),
     );
 
     // Save risk flags
     await Promise.all(
       transformedRisks.map((riskData) =>
-        this.prisma.riskFlag.create({ data: riskData }),
+        this.prisma.riskFlag.create({
+          data: {
+            ...riskData,
+            clauseId: riskData.clauseId?.toString(), // Convert clauseId to string
+            status: RiskFlagStatus.OPEN,
+            notes: '',
+          },
+        }),
       ),
     );
 
     // Save summary
     await this.prisma.summary.create({
       data: {
-        content:
+        text:
           typeof analysis.summary === 'string'
             ? analysis.summary
             : JSON.stringify(analysis.summary),
-        summaryType: 'FULL',
+        type: SummaryType.FULL,
         contractId: contract.id,
       },
     });
@@ -195,7 +225,7 @@ export class ContractService {
         clauses: true,
         riskFlags: true,
         summaries: true,
-        qnas: true,
+        qnaInteractions: true,
         reviews: true,
       },
     });
@@ -241,17 +271,17 @@ export class ContractService {
   async getContractQnA(id: string): Promise<QnA[]> {
     const contract = await this.prisma.contract.findUnique({
       where: { id },
-      include: { qnas: true },
+      include: { qnaInteractions: true },
     });
     if (!contract)
       throw new NotFoundException(`Contract with ID ${id} not found`);
-    return contract.qnas;
+    return contract.qnaInteractions;
   }
 
   async updateRiskFlag(
     contractId: string,
     riskId: string,
-    status: 'open' | 'resolved' | 'ignored',
+    status: RiskFlagStatus,
     notes?: string,
   ): Promise<RiskFlag> {
     await this.findOne(contractId);
@@ -272,7 +302,7 @@ export class ContractService {
   async exportAnalysis(id: string): Promise<ExportAnalysisResult> {
     const contract = await this.prisma.contract.findUnique({
       where: { id },
-      include: { summaries: true, riskFlags: true, qnas: true },
+      include: { summaries: true, riskFlags: true, qnaInteractions: true },
     });
     if (!contract)
       throw new NotFoundException(`Contract with ID ${id} not found`);
@@ -280,7 +310,7 @@ export class ContractService {
       contract,
       summaries: contract.summaries,
       riskFlags: contract.riskFlags,
-      qna: contract.qnas,
+      qna: contract.qnaInteractions,
     };
   }
 

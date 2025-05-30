@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StandardClausesService } from './standard-clauses.service';
-import { StandardClause } from '../../entities/standard-clause.entity';
+import { StandardClause } from '../../../generated/prisma';
 import { NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 

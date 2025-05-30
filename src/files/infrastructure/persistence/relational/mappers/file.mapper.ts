@@ -1,7 +1,7 @@
 // TODO: Migrate to Prisma
 // import { FileEntity } from '../entities/file.entity';
 import { FileType } from '../../../../domain/file';
-import { File } from '@prisma/client';
+import { File } from '../../../../../../generated/prisma';
 // import { raw } from 'objection';
 
 export class FileMapper {

@@ -29,4 +29,12 @@ export class CreateStandardClauseDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  contractType?: string;
+
+  @IsString()
+  @IsOptional()
+  text?: string;
 }

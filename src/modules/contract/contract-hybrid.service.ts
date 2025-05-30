@@ -4,7 +4,7 @@ import neo4j, { Driver } from 'neo4j-driver';
 import { MilvusClient, DataType } from '@zilliz/milvus2-sdk-node';
 import { Milvus } from '@langchain/community/vectorstores/milvus';
 import { z } from 'zod';
-import scribe from 'scribe.js-ocr';
+//import scribe from 'scribe.js-ocr';
 import { Document } from 'langchain/document';
 import { CustomVoyageEmbeddings } from '../../utils/voyage-embeddings';
 import { AiService } from '../ai/ai.service';
@@ -56,6 +56,7 @@ export class ContractHybridService implements OnModuleInit {
   }
 
   async extractText(sources: Array<string | Buffer>): Promise<string> {
+    const { scribe } = await import('scribe.js-ocr');
     const results = await scribe.extractText(sources);
     return results.join('\n');
   }

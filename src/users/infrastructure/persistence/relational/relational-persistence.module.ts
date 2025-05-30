@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UserRepository } from '../user.repository';
 import { UsersRelationalRepository } from './repositories/user.repository';
+import { PrismaModule } from '../../../../prisma/prisma.module';
 
 @Module({
   providers: [
@@ -10,5 +11,6 @@ import { UsersRelationalRepository } from './repositories/user.repository';
     },
   ],
   exports: [UserRepository],
+  imports: [PrismaModule],
 })
 export class RelationalUserPersistenceModule {}

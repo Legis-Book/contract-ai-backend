@@ -6,7 +6,7 @@ import { FileRepository } from '../../file.repository';
 
 import { FileType } from '../../../../domain/file';
 import { NullableType } from '../../../../../utils/types/nullable.type';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from '@src/prisma/prisma.service';
 import { FileMapper } from '../mappers/file.mapper';
 
 // import { FileMapper } from '../mappers/file.mapper';

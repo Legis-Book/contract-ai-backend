@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-// import { TypeOrmModule } from '@nestjs/typeorm';
-// import { FileEntity } from './entities/file.entity';
 import { FileRepository } from '../file.repository';
 import { FileRelationalRepository } from './repositories/file.repository';
+import { PrismaModule } from '@src/prisma/prisma.module';
 
 @Module({
-  // imports: [TypeOrmModule.forFeature([FileEntity])],
   providers: [
     {
       provide: FileRepository,
@@ -13,6 +11,6 @@ import { FileRelationalRepository } from './repositories/file.repository';
     },
   ],
   exports: [FileRepository],
+  imports: [PrismaModule],
 })
 export class RelationalFilePersistenceModule {}
-// TODO: Migrate to Prisma

@@ -1,12 +1,11 @@
-import { EntityRelationalHelper } from '../relational-entity-helper';
+import { addEntityHelpers } from '../relational-entity-helper';
 
-describe('EntityRelationalHelper', () => {
-  it('should set entity name and serialize to plain object', () => {
-    class TestEntity extends EntityRelationalHelper {
+describe('addEntityHelpers', () => {
+  it('should add __entity and toJSON methods', () => {
+    class TestEntity {
       id = 1;
     }
-    const entity = new TestEntity();
-    entity.setEntityName();
+    const entity = addEntityHelpers(new TestEntity());
     expect(entity.__entity).toBe('TestEntity');
     expect(entity.toJSON()).toEqual({ id: 1, __entity: 'TestEntity' });
   });

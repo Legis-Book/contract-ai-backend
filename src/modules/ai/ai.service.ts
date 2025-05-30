@@ -200,8 +200,15 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       try {
         const zodSchema = vertexSchemaToZod(JSON.parse(raw));
         result = zodSchema.safeParse(zodSchema.parse(JSON.parse(raw)));
-      } catch (e) {
-        throw new Error('Failed to parse result: ' + e);
+      } catch {
+        try {
+          const parsed = JSON.parse(raw);
+          result = (schema as any).parse
+            ? (schema as any).parse(parsed)
+            : parsed;
+        } catch (e2) {
+          throw new Error('Failed to parse result: ' + e2);
+        }
       }
     }
     return result;

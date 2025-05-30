@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsOptional, IsDate } from 'class-validator';
-import { ReviewStatus } from '../entities/human-review.entity';
+import { ReviewStatus } from '@orm/prisma';
 
 export class CreateHumanReviewDto {
   @ApiProperty({ description: 'Status of the review', enum: ReviewStatus })
@@ -34,5 +34,5 @@ export class CreateHumanReviewDto {
   })
   @IsString()
   @IsOptional()
-  reviewerId?: string;
+  reviewerId?: number;
 }

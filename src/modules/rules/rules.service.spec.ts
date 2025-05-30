@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RulesService } from './rules.service';
-import { Rule } from '../../entities/rule.entity';
+import { Rule } from '../../../generated/prisma';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
