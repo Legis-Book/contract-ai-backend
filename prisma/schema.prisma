@@ -21,6 +21,7 @@ enum ContractType {
   SAAS
   SALES
   OTHER
+  SERVICE
 }
 
 enum ContractStatus {
@@ -49,10 +50,17 @@ enum ClauseType {
   COUNTERPARTS
   HEADINGS
   DEFINITIONS
+  PAYMENT
+  TERM
   OTHER
 }
 
 enum RiskType {
+  COMPLIANCE
+  FINANCIAL
+  LEGAL
+  OPERATIONAL
+  REPUTATIONAL
   MISSING_CLAUSE
   DEVIATION
   COMPLIANCE_ISSUE
@@ -90,6 +98,12 @@ enum RiskFlagStatus {
   OPEN
   RESOLVED
   IGNORED
+}
+
+enum ClauseRiskLevel {
+  HIGH
+  MEDIUM
+  LOW
 }
 
 model User {
@@ -148,6 +162,7 @@ model Contract {
   type                ContractType  @default(OTHER)
   status              ContractStatus @default(PENDING_REVIEW)
   originalText        String?
+  uniqueHash          String
   governingLaw        String?
   parties             Json?
   uploadDate          DateTime?
@@ -160,17 +175,32 @@ model Contract {
   reviews             HumanReview[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
+
+  @@unique([uniqueHash])
 }
 
 model Clause {
   id              String      @id @default(uuid())
-  number          Int
+  number          String
   text            String
   type            ClauseType?
   isReviewed      Boolean     @default(false)
   isApproved      Boolean     @default(false)
   suggestedText   String?
   contractId      String
+  analysisId      String?
+  startIndex      Int?
+  endIndex        Int?
+  title           String?
+  classification  String?
+  riskLevel       ClauseRiskLevel?
+  riskJustification String?
+  entities        String?
+  amounts         String?
+  dates           String?
+  legalReferences String?
+  obligation      String?
+  confidence      Int?
   contract        Contract    @relation(fields: [contractId], references: [id])
   riskFlags       RiskFlag[]
   summaries       Summary[]
@@ -190,6 +220,8 @@ model RiskFlag {
   reviewerComments    String?
   status              RiskFlagStatus
   notes               String
+  analysisId          String?
+  confidence          Float?
   contractId          String
   contract            Contract    @relation(fields: [contractId], references: [id])
   clauseId            String?

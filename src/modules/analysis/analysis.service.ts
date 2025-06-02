@@ -27,6 +27,7 @@ import { CreateHumanReviewDto } from './dto/create-human-review.dto';
 import { UpdateHumanReviewDto } from './dto/update-human-review.dto';
 import { ContractStatus } from './entities/contract.entity';
 import { AiService } from '../ai/ai.service';
+import crypto from 'node:crypto';
 
 @Injectable()
 export class AnalysisService {
@@ -46,8 +47,14 @@ export class AnalysisService {
         parties: createContractDto.parties
           ? JSON.stringify(createContractDto.parties)
           : undefined,
+        uniqueHash: this.generateUniqueHash(
+          createContractDto.originalText ?? '',
+        ),
       },
     });
+  }
+  generateUniqueHash(fullText: string): string {
+    return crypto.createHash('sha256').update(fullText).digest('hex');
   }
 
   async findAllContracts(): Promise<Contract[]> {
@@ -370,7 +377,7 @@ export class AnalysisService {
     for (const [index, clauseText] of clauses.entries()) {
       // Create clause
       const clause = await this.createClause(contractId, {
-        number: index + 1,
+        number: (index + 1).toString(),
         text: clauseText,
       });
 
