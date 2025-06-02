@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Clause" ALTER COLUMN "number" SET DATA TYPE TEXT;

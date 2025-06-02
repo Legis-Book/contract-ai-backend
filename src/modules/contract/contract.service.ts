@@ -17,14 +17,16 @@ import {
   RiskSeverity,
   SummaryType,
   RiskFlagStatus,
+  Clause,
+  ClauseRiskLevel,
 } from '@orm/prisma';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { AiService } from '../ai/ai.service';
-//import { scribe } from 'scribe.js-ocr';
 import fs from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import crypto from 'node:crypto';
 
 export interface ExportAnalysisResult {
   contract: Contract;
@@ -44,6 +46,7 @@ export class ContractService {
       data: {
         ...createContractDto,
         status: createContractDto.status,
+        uniqueHash: this.generateUniqueHash(createContractDto.fullText ?? ''),
       },
     });
   }
@@ -122,8 +125,11 @@ export class ContractService {
       );
       await fs.writeFile(tempPath, file.buffer);
       try {
-        const { scribe } = await import('scribe.js-ocr');
-        const results = await scribe.extractText([tempPath]);
+        const scribe = await import('scribe.js-ocr').catch((e) => {
+          console.error(e);
+          throw new BadRequestException('Failed to extract text from PDF');
+        });
+        const results = await scribe.default.extractText([tempPath]);
         fullText = results;
       } catch (e) {
         console.error(e);
@@ -133,18 +139,65 @@ export class ContractService {
       }
     }
 
+    const uniqueHash = this.generateUniqueHash(fullText);
+
+    // Check if contract with this hash already exists
+    const existingContract = await this.prisma.contract.findUnique({
+      where: { uniqueHash },
+      include: {
+        clauses: true,
+        riskFlags: true,
+        summaries: true,
+        qnaInteractions: true,
+        reviews: true,
+      },
+    });
+
+    if (existingContract) {
+      return existingContract;
+    }
+
     return await this.prisma.contract.create({
       data: {
         title: file.originalname,
-        type: contractType as ContractType,
+        type: contractType.toUpperCase() as ContractType,
         status: ContractStatus.PENDING_REVIEW,
         originalText: fullText,
+        uniqueHash,
       },
     });
   }
+  generateUniqueHash(fullText: string): string {
+    return crypto.createHash('sha256').update(fullText).digest('hex');
+  }
 
   async analyzeContract(id: string): Promise<Contract> {
-    const contract = await this.findOne(id);
+    const contract = await this.prisma.contract.findUnique({
+      where: { id },
+      include: {
+        clauses: true,
+        riskFlags: true,
+        summaries: true,
+        qnaInteractions: true,
+        reviews: true,
+      },
+    });
+
+    if (!contract) {
+      throw new NotFoundException(`Contract with ID ${id} not found`);
+    }
+
+    // If already analyzed (status IN_REVIEW or later, or has clauses/risks/summaries), return contract directly
+    const alreadyAnalyzed =
+      contract.status === ContractStatus.IN_REVIEW ||
+      contract.status === ContractStatus.APPROVED ||
+      (contract.clauses && contract.clauses.length > 0) ||
+      (contract.riskFlags && contract.riskFlags.length > 0) ||
+      (contract.summaries && contract.summaries.length > 0);
+
+    if (alreadyAnalyzed) {
+      return contract;
+    }
 
     if (!contract.originalText) {
       throw new BadRequestException('Contract text is required for analysis');
@@ -156,49 +209,80 @@ export class ContractService {
       contract.type,
     );
 
-    // Transform clauses data to match schema
-    const transformedClauses = analysis.clauses.map((clauseData) => ({
-      ...clauseData,
-      id: crypto.randomUUID(), // Generate UUID for clause
-      contractId: contract.id,
-      title: clauseData.title,
-      type: clauseData.type as ClauseType | null,
-      startIndex: clauseData.startIndex,
-      endIndex: clauseData.endIndex,
-      confidence: clauseData.confidence,
-    }));
+    const analysisId = crypto.randomUUID();
 
-    // Transform risks data to match schema
-    const transformedRisks = analysis.risks.map((riskData) => ({
-      ...riskData,
-      id: crypto.randomUUID(), // Generate UUID for risk flag
-      contractId: contract.id,
-      type: riskData.type as RiskType,
-      severity: riskData.severity as RiskSeverity,
-    }));
+    // Transform clauses data to match schema
+    const transformedClauses = analysis.clauses.map(
+      (clauseData) =>
+        ({
+          id: crypto.randomUUID(), // Generate UUID for clause
+          contractId: contract.id,
+          number: clauseData.clauseNumber ?? '',
+          type: clauseData.type?.toUpperCase() as ClauseType | null,
+          startIndex: clauseData.startIndex ?? 0,
+          endIndex: clauseData.endIndex ?? 0,
+          confidence: clauseData.confidence ?? 0,
+          entities: clauseData.entities?.join(',') ?? null,
+          amounts: clauseData.amounts?.join(',') ?? null,
+          dates: clauseData.dates?.join(',') ?? null,
+          legalReferences: clauseData.legalReferences?.join(',') ?? null,
+          obligation: String(clauseData.obligation) ?? null,
+          riskLevel: clauseData.riskLevel as ClauseRiskLevel | null,
+          riskJustification: clauseData.riskJustification ?? null,
+          title: clauseData.title ?? null,
+          text: clauseData.text ?? null,
+          classification: clauseData.classification ?? null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isReviewed: false,
+          isApproved: false,
+          suggestedText: null,
+          analysisId,
+        }) satisfies Clause,
+    );
 
     // Save clauses
     await Promise.all(
-      transformedClauses.map((clauseData, index) =>
+      transformedClauses.map((clauseData) =>
         this.prisma.clause.create({
           data: {
             ...clauseData,
-            number: index + 1,
           },
         }),
       ),
     );
 
+    // Transform risks data to match schema
+    const transformedRisks = analysis.risks.map(
+      async (riskData) =>
+        ({
+          id: crypto.randomUUID(), // Generate UUID for risk flag
+          contractId: contract.id,
+          type: riskData.type as RiskType,
+          severity: riskData.severity as RiskSeverity,
+          status: RiskFlagStatus.OPEN,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          notes: '',
+          isReviewed: false,
+          reviewerComments: '',
+          clauseId: await this.getClauseIdByNumber(
+            analysisId,
+            riskData.clauseNumber,
+          ),
+          isResolved: false,
+          confidence: riskData.confidence ?? 0,
+          analysisId,
+          description: riskData.description ?? '',
+          suggestedResolution: riskData.suggestedResolution ?? '',
+        }) satisfies RiskFlag,
+    );
+
     // Save risk flags
     await Promise.all(
-      transformedRisks.map((riskData) =>
+      transformedRisks.map(async (riskData) =>
         this.prisma.riskFlag.create({
-          data: {
-            ...riskData,
-            clauseId: riskData.clauseId?.toString(), // Convert clauseId to string
-            status: RiskFlagStatus.OPEN,
-            notes: '',
-          },
+          data: await riskData,
         }),
       ),
     );
@@ -232,6 +316,15 @@ export class ContractService {
 
     return updatedContract;
   }
+  async getClauseIdByNumber(
+    analysisId: string,
+    clauseNumber: string | undefined,
+  ): Promise<string | null> {
+    const clause = await this.prisma.clause.findFirst({
+      where: { number: clauseNumber, analysisId },
+    });
+    return clause?.id ?? null; // TODO: Handle multiple clauses with the same number
+  }
 
   async getContractSummary(id: string): Promise<Summary[]> {
     const contract = await this.prisma.contract.findUnique({
@@ -253,18 +346,21 @@ export class ContractService {
     return contract.riskFlags;
   }
 
-  async getAnalysis(
-    id: string,
-  ): Promise<{ summaries: Summary[]; riskFlags: RiskFlag[] }> {
+  async getAnalysis(id: string): Promise<{
+    summaries: Summary[];
+    riskFlags: RiskFlag[];
+    clauses: Clause[];
+  }> {
     const contract = await this.prisma.contract.findUnique({
       where: { id },
-      include: { summaries: true, riskFlags: true },
+      include: { summaries: true, riskFlags: true, clauses: true },
     });
     if (!contract)
       throw new NotFoundException(`Contract with ID ${id} not found`);
     return {
       summaries: contract.summaries,
       riskFlags: contract.riskFlags,
+      clauses: contract.clauses,
     };
   }
 
