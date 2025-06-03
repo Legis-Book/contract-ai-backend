@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@src/prisma/prisma.service';
 import {
@@ -168,6 +169,9 @@ export class ContractService {
     });
   }
   generateUniqueHash(fullText: string): string {
+    if (!fullText) {
+      throw new BadRequestException('Cannot generate hash for empty text');
+    }
     return crypto.createHash('sha256').update(fullText).digest('hex');
   }
 
@@ -252,9 +256,26 @@ export class ContractService {
       ),
     );
 
+    // Collect clause numbers and fetch all clause IDs in a single query
+    const clauseNumbers = analysis.risks
+      .map((r) => r.clauseNumber)
+      .filter((n): n is string => !!n);
+
+    const clauseIdMap = new Map<string, string>();
+    if (clauseNumbers.length > 0) {
+      const clauses = await this.prisma.clause.findMany({
+        where: { analysisId, number: { in: clauseNumbers } },
+        select: { id: true, number: true },
+      });
+      for (const clause of clauses) {
+        // last one wins if duplicates exist
+        clauseIdMap.set(clause.number, clause.id);
+      }
+    }
+
     // Transform risks data to match schema
     const transformedRisks = analysis.risks.map(
-      async (riskData) =>
+      (riskData) =>
         ({
           id: crypto.randomUUID(), // Generate UUID for risk flag
           contractId: contract.id,
@@ -266,10 +287,9 @@ export class ContractService {
           notes: '',
           isReviewed: false,
           reviewerComments: '',
-          clauseId: await this.getClauseIdByNumber(
-            analysisId,
-            riskData.clauseNumber,
-          ),
+          clauseId: riskData.clauseNumber
+            ? (clauseIdMap.get(riskData.clauseNumber) ?? null)
+            : null,
           isResolved: false,
           confidence: riskData.confidence ?? 0,
           analysisId,
@@ -280,9 +300,9 @@ export class ContractService {
 
     // Save risk flags
     await Promise.all(
-      transformedRisks.map(async (riskData) =>
+      transformedRisks.map((riskData) =>
         this.prisma.riskFlag.create({
-          data: await riskData,
+          data: riskData,
         }),
       ),
     );
@@ -320,10 +340,18 @@ export class ContractService {
     analysisId: string,
     clauseNumber: string | undefined,
   ): Promise<string | null> {
-    const clause = await this.prisma.clause.findFirst({
+    if (!clauseNumber) return null;
+    const clauses = await this.prisma.clause.findMany({
       where: { number: clauseNumber, analysisId },
+      select: { id: true },
     });
-    return clause?.id ?? null; // TODO: Handle multiple clauses with the same number
+    if (clauses.length === 0) return null;
+    if (clauses.length > 1) {
+      throw new ConflictException(
+        `Multiple clauses found with number ${clauseNumber} for analysis ${analysisId}`,
+      );
+    }
+    return clauses[0].id;
   }
 
   async getContractSummary(id: string): Promise<Summary[]> {

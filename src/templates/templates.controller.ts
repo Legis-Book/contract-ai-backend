@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import { CreateStandardClauseDto } from './dto/create-standard-clause.dto';
@@ -41,20 +42,20 @@ export class TemplatesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number): Promise<StandardClause> {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<StandardClause> {
     return this.templatesService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
     return this.templatesService.update(id, updateStandardClauseDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number): Promise<void> {
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.templatesService.remove(id);
   }
 }
