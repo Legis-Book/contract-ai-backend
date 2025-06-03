@@ -21,6 +21,7 @@ import {
   ApiConsumes,
   ApiBody,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import type { ExportAnalysisResult } from './contract.service';
 import { ContractHybridService } from './contract-hybrid.service';
@@ -342,12 +343,6 @@ export class ContractController {
     required: true,
     schema: { type: 'string', format: 'uuid' },
   })
-  @ApiParam({
-    name: 'body',
-    type: IngestContractDto,
-    description: 'Contract ingestion data',
-    required: true,
-  })
   async hybridIngest(
     @Param('id') contractId: string,
     @Body() body: IngestContractDto,
@@ -368,7 +363,7 @@ export class ContractController {
   @Get(':id/hybrid-search')
   @ApiOperation({ summary: 'Search contract clauses using hybrid AI' })
   @ApiResponse({ status: 200, description: 'Return contract clauses' })
-  @ApiParam({
+  @ApiQuery({
     name: 'q',
     type: String,
     description: 'Search query',

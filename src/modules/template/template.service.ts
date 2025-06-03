@@ -15,30 +15,24 @@ export class TemplateService {
   ): Promise<StandardClause> {
     return await this.prisma.standardClause.create({
       data: {
-        name: createStandardClauseDto.name,
-        type: createStandardClauseDto.type,
-        text: createStandardClauseDto.text,
-        jurisdiction: createStandardClauseDto.jurisdiction,
+        ...createStandardClauseDto,
         isActive: true,
         isLatest: true,
         version: '1.0.0',
-        contractType: createStandardClauseDto.type,
-        nextVersions: {
-          create: [],
-        },
-      },
+        nextVersions: [],
+      } as any,
     });
   }
 
   async findAll(): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
-      where: { isActive: true },
+      where: { isActive: true, isLatest: true },
     });
   }
 
-  async findOne(id: number): Promise<StandardClause> {
+  async findOne(id: string | number): Promise<StandardClause> {
     const standardClause = await this.prisma.standardClause.findUnique({
-      where: { id },
+      where: { id: id as any },
     });
     if (!standardClause) {
       throw new NotFoundException(`Standard clause with ID ${id} not found`);
@@ -47,17 +41,16 @@ export class TemplateService {
   }
 
   async update(
-    id: number,
+    id: string | number,
     updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
-    const numericId = Number(id);
-    const standardClause = await this.findOne(numericId);
+    const standardClause = await this.findOne(id);
 
     // If there are significant changes, create a new version
     if (this.hasSignificantChanges(standardClause, updateStandardClauseDto)) {
       // Mark current version as not latest
       await this.prisma.standardClause.update({
-        where: { id: numericId },
+        where: { id: id as any },
         data: { isLatest: false },
       });
 
@@ -68,7 +61,7 @@ export class TemplateService {
           type: updateStandardClauseDto.type!,
           text: updateStandardClauseDto.text!,
           jurisdiction: updateStandardClauseDto.jurisdiction ?? null,
-          previousVersionId: numericId,
+          previousVersionId: Number(id),
           isActive: true,
           isLatest: true,
           contractType: updateStandardClauseDto.type ?? '',
@@ -80,43 +73,36 @@ export class TemplateService {
 
     // Otherwise, update existing version
     return await this.prisma.standardClause.update({
-      where: { id: numericId },
-      data: {
-        name: updateStandardClauseDto.name,
-        type: updateStandardClauseDto.type,
-        text: updateStandardClauseDto.text,
-        jurisdiction: updateStandardClauseDto.jurisdiction,
-        contractType: updateStandardClauseDto.type,
-        allowedDeviations: updateStandardClauseDto.allowedDeviations
-          ? (JSON.stringify(updateStandardClauseDto.allowedDeviations) as any)
-          : null,
-      },
+      where: { id: id as any },
+      data: updateStandardClauseDto as any,
     });
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string | number): Promise<void> {
     await this.findOne(id);
     await this.prisma.standardClause.update({
-      where: { id: id },
+      where: { id: id as any },
       data: { isActive: false },
     });
   }
 
   async findByType(type: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
-      where: { type, isActive: true, isLatest: true },
+      where: { type, isActive: true },
+      orderBy: { createdAt: 'DESC' } as any,
     });
   }
 
   async findByJurisdiction(jurisdiction: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
-      where: { jurisdiction, isActive: true, isLatest: true },
+      where: { jurisdiction, isActive: true },
+      orderBy: { createdAt: 'DESC' } as any,
     });
   }
 
   async compareClause(
     clauseText: string,
-    templateId: number,
+    templateId: string | number,
   ): Promise<{
     similarity: number;
     isCompliant: boolean;
@@ -134,7 +120,7 @@ export class TemplateService {
     };
   }
 
-  async getTemplateVersions(id: number): Promise<StandardClause[]> {
+  async getTemplateVersions(id: string | number): Promise<StandardClause[]> {
     let currentVersion = await this.findOne(id);
     const versions: StandardClause[] = [currentVersion];
     while (currentVersion.previousVersionId) {

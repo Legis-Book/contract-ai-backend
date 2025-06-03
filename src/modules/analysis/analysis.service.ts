@@ -25,7 +25,6 @@ import { CreateQnADto } from './dto/create-qna.dto';
 import { UpdateQnADto } from './dto/update-qna.dto';
 import { CreateHumanReviewDto } from './dto/create-human-review.dto';
 import { UpdateHumanReviewDto } from './dto/update-human-review.dto';
-import { ContractStatus } from './entities/contract.entity';
 import { AiService } from '../ai/ai.service';
 import crypto from 'node:crypto';
 
@@ -43,14 +42,8 @@ export class AnalysisService {
     return await this.prisma.contract.create({
       data: {
         ...createContractDto,
-        status: ContractStatus.PENDING_REVIEW,
-        parties: createContractDto.parties
-          ? JSON.stringify(createContractDto.parties)
-          : undefined,
-        uniqueHash: this.generateUniqueHash(
-          createContractDto.originalText ?? '',
-        ),
-      },
+        status: 'pending_review',
+      } as any,
     });
   }
   generateUniqueHash(fullText: string): string {
