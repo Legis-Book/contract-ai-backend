@@ -12,12 +12,7 @@ export class TemplatesService {
     createStandardClauseDto: CreateStandardClauseDto,
   ): Promise<StandardClause> {
     return await this.prisma.standardClause.create({
-      data: {
-        isActive: true,
-        contractType: createStandardClauseDto.contractType || '',
-        text: createStandardClauseDto.text || '',
-        ...createStandardClauseDto,
-      },
+      data: { isActive: true, ...createStandardClauseDto } as any,
     });
   }
 
@@ -28,9 +23,9 @@ export class TemplatesService {
     });
   }
 
-  async findOne(id: number): Promise<StandardClause> {
+  async findOne(id: string | number): Promise<StandardClause> {
     const clause = await this.prisma.standardClause.findUnique({
-      where: { id },
+      where: { id: id as any },
     });
 
     if (!clause) {
@@ -41,19 +36,19 @@ export class TemplatesService {
   }
 
   async update(
-    id: number,
+    id: string | number,
     updateStandardClauseDto: UpdateStandardClauseDto,
   ): Promise<StandardClause> {
     await this.findOne(id);
     return await this.prisma.standardClause.update({
-      where: { id },
+      where: { id: id as any },
       data: updateStandardClauseDto,
     });
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string | number): Promise<void> {
     await this.prisma.standardClause.update({
-      where: { id },
+      where: { id: id as any },
       data: { isActive: false },
     });
   }
@@ -61,14 +56,14 @@ export class TemplatesService {
   async findByType(type: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { type, isActive: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'DESC' } as any,
     });
   }
 
   async findByJurisdiction(jurisdiction: string): Promise<StandardClause[]> {
     return await this.prisma.standardClause.findMany({
       where: { jurisdiction, isActive: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'DESC' } as any,
     });
   }
 }
